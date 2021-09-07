@@ -63,6 +63,36 @@ whoamiBtn.addEventListener('click', async () => {
   });
 });
 */
+function call_insert(key, user, pw) {
+    //const identity = await authClient.getIdentity();
+    const identity = Principal.fromText('2vxsx-fae');
+
+    const idlFactory = ({ IDL }) =>
+        IDL.Service({
+        insert: IDL.Func([
+            IDL.Text,
+            IDL.Record({
+                username: IDL.Text,
+                password: IDL.Text,
+            })
+        ], [], ['update']),
+    });
+
+    const canisterId = Principal.fromText('uvf7r-liaaa-aaaah-qabnq-cai');
+
+    const actor = Actor.createActor(idlFactory, {
+        agent: new HttpAgent(
+            {
+                host: 'https://ic0.app/',
+            }
+        ),
+        canisterId,
+    });
+
+    actor.insert(key, {username: user, password: pw}).then(() => {
+        alert('insert complete!');
+    });
+}
 
 function make_input_cell(id) {
     var cell = document.createElement('div');
@@ -114,6 +144,7 @@ create_new_button.addEventListener('click', () => {
     var key = row.getElementsByClassName('key_input')[0].value;
     var user = row.getElementsByClassName('user_input')[0].value;
     var pw = row.getElementsByClassName('pw_input')[0].value;
+    call_insert(key, user, pw);
     add_row(key, user, pw);
     clear_input();
 })
