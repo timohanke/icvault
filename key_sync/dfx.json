@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "dfx": "0.8.1",
+  "canisters": {
+    "key_sync": {
+      "type": "motoko",
+      "main": "src/key_sync/main.mo"
+    },
+    "key_sync_assets": {
+      "type": "assets",
+      "source": [
+        "src/key_sync_assets/assets"
+      ],
+      "dependencies": [
+        "key_sync"
+      ]
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": "",
+      "args": ""
+    }
+  },
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  }
+}
