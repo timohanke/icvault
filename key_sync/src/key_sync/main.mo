@@ -27,9 +27,7 @@ actor class KeySync() {
 
     let users = Map.HashMap<Principal, UserStore>(10, Principal.equal, Principal.hash);
 
-    public shared (message) func register_device(alias : DeviceAlias, pk : PublicKey) : async Bool {
-        let caller = message.caller;
-
+    public shared ({caller}) func register_device(alias : DeviceAlias, pk : PublicKey) : async Bool {
         // if caller unknown then create empty lists for user
         if (Option.isNull(users.get(caller))) {
             users.put(caller, UserStore());
@@ -50,8 +48,8 @@ actor class KeySync() {
         true
     };
 
-    public shared(message) func remove_device(alias : DeviceAlias) : () {
-        switch (users.get(message.caller)) {
+    public shared({caller}) func remove_device(alias : DeviceAlias) : () {
+        switch (users.get(caller)) {
             case null { };
             case (?store) {
                 // remove ciphertexts associated with the device
@@ -67,8 +65,8 @@ actor class KeySync() {
         }
     };
 
-    public query (message) func get_devices() : async [(DeviceAlias, PublicKey)] {
-        switch (users.get(message.caller)) {
+    public query ({caller}) func get_devices() : async [(DeviceAlias, PublicKey)] {
+        switch (users.get(caller)) {
             case null {
                 []
             };
@@ -78,8 +76,8 @@ actor class KeySync() {
         }
     };
 
-    public query (message) func get_unsynced_pubkeys() : async [PublicKey] {
-        switch (users.get(message.caller)) {
+    public query ({caller}) func get_unsynced_pubkeys() : async [PublicKey] {
+        switch (users.get(caller)) {
             case null {
                 []
              };
@@ -96,8 +94,8 @@ actor class KeySync() {
         };
     };
 
-    public query (message) func isSeeded() : async Bool {
-        switch (users.get(message.caller)) {
+    public query ({caller}) func isSeeded() : async Bool {
+        switch (users.get(caller)) {
             case null {
                 false
             };
@@ -117,8 +115,8 @@ actor class KeySync() {
         false
     };
 
-    public query (message) func get_ciphertext(pk : PublicKey) : async Result.Result<Ciphertext, GetCiphertextError> {
-        switch (users.get(message.caller)) {
+    public query ({caller}) func get_ciphertext(pk : PublicKey) : async Result.Result<Ciphertext, GetCiphertextError> {
+        switch (users.get(caller)) {
             case null {
                 #err(#notFound) // user unknown
             };
@@ -138,8 +136,8 @@ actor class KeySync() {
         }        
     };
 
-    public shared(message) func submit_ciphertexts(ciphertexts : [(PublicKey, Ciphertext)]) : () {
-        switch (users.get(message.caller)) {
+    public shared({caller}) func submit_ciphertexts(ciphertexts : [(PublicKey, Ciphertext)]) : () {
+        switch (users.get(caller)) {
             case null { }; // user unknown
             case (?store) {
                 label next for (x in ciphertexts.vals()) {
@@ -160,8 +158,8 @@ actor class KeySync() {
         }            
     };
 
-    public shared(message) func seed(pk : PublicKey, c : Ciphertext) : () {
-        switch (users.get(message.caller)) {
+    public shared({caller}) func seed(pk : PublicKey, c : Ciphertext) : () {
+        switch (users.get(caller)) {
             case null { }; // user unknown
             case (?store) {
                 if (isKnownPublicKey(store, pk) and store.ciphertext_list.size() == 0) {
@@ -172,7 +170,7 @@ actor class KeySync() {
     };
 
     // Return the principal identifier of the caller of this method.
-    public query (message) func whoami() : async Principal {
-        return message.caller;
+    public query ({caller}) func whoami() : async Principal {
+        return caller;
     };
 }
