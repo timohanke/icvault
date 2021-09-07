@@ -63,6 +63,7 @@ whoamiBtn.addEventListener('click', async () => {
   });
 });
 */
+
 function call_insert(key, user, pw) {
     //const identity = await authClient.getIdentity();
     const identity = Principal.fromText('2vxsx-fae');
@@ -94,6 +95,16 @@ function call_insert(key, user, pw) {
     });
 }
 
+function make_with_input_cell(className,content) {
+    var cell = document.createElement('div');
+    cell.className = className;
+    var  field = document.createElement('input');
+    field.setAttribute('type', 'text');
+    field.setAttribute('value', content);
+    cell.appendChild(field);
+    return cell;
+}
+
 function make_input_cell(id) {
     var cell = document.createElement('div');
     cell.id = id;
@@ -103,13 +114,64 @@ function make_input_cell(id) {
     return cell;
 }
 
-function make_save_cell(row_id) {
+
+function save_row(event) {
+
+    var row = event.target.parentNode.parentNode;
+
+    var new_row = document.createElement('div');
+    new_row.className = "cred_row";
+    new_row.appendChild(make_text_cell('cred_key',row.getElementsByClassName('cred_key')[0].childNodes[0].value));
+    new_row.appendChild(make_text_cell('cred_user',row.getElementsByClassName('cred_user')[0].childNodes[0].value));
+    new_row.appendChild(make_text_cell('cred_pw', row.getElementsByClassName('cred_pw')[0].childNodes[0].value));
+    new_row.appendChild(make_edit_cell('cred_control')); 
+
+    var parentElement = row.parentNode;
+    parentElement.replaceChild(new_row, row);
+}
+
+function make_save_cell(className) {
     var cell = document.createElement('div');
-    var save_button = document.createElement('button');
-    save_button.addEventListener('click', () => {
-        alert("Save row" + row_id);
-    });
-    cell.appendChild(save_button);
+    cell.className = className;
+
+    var edit_button = document.createElement('input');
+    edit_button.setAttribute("type", "button");
+    edit_button.setAttribute("value", "save");
+    edit_button.addEventListener('click',save_row,false);
+
+    cell.appendChild(edit_button);
+    return cell;
+}
+
+function make_row_editable(event) {
+
+    var row = event.target.parentNode.parentNode;
+
+    var editable_row = document.createElement('div');
+    editable_row.className = row.className;
+
+    editable_row.appendChild(make_with_input_cell('cred_key',row.getElementsByClassName('cred_key')[0].childNodes[0].nodeValue));
+    editable_row.appendChild(make_with_input_cell('cred_user',row.getElementsByClassName('cred_user')[0].childNodes[0].nodeValue));
+    editable_row.appendChild(make_with_input_cell('cred_pw',row.getElementsByClassName('cred_pw')[0].childNodes[0].nodeValue));
+
+    editable_row.appendChild(make_save_cell('cred_control')); 
+
+    var parentElement = row.parentNode;
+    parentElement.replaceChild(editable_row, row);
+
+    //alert("Edit row:" + row_id + " :" + parentElement.nodeName );
+}
+
+function make_edit_cell(className) {
+    var cell = document.createElement('div');
+    cell.className = className;
+
+    var edit_button = document.createElement('input');
+    edit_button.setAttribute("type", "button");
+    edit_button.setAttribute("value", "edit");
+    edit_button.addEventListener('click',make_row_editable,false);
+
+    cell.appendChild(edit_button);
     return cell;
 }
 
@@ -128,6 +190,7 @@ function add_row(key, user, pw) {
     row.appendChild(make_text_cell('cred_key', key));
     row.appendChild(make_text_cell('cred_user', user));
     row.appendChild(make_text_cell('cred_pw', pw));
+    row.appendChild(make_edit_cell('cred_control')); 
 
     tab.insertBefore(row, tab.childNodes[tab.childNodes.length - 1]);
 }
