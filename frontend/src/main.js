@@ -5,6 +5,7 @@ import { AuthClient } from '@dfinity/auth-client';
 const signInBtn = document.getElementById('signinBtn');
 const signOutBtn = document.getElementById('signoutBtn');
 const whoamiBtn = document.getElementById('whoamiBtn');
+const listDevicesBtn = document.getElementById('listDevicesBtn');
 const hostUrlEl = document.getElementById('hostUrl');
 const whoAmIResponseEl = document.getElementById('whoamiResponse');
 const principalEl = document.getElementById('principal');
@@ -174,14 +175,38 @@ const init = async () => {
   console.log("Public key is: " + window.myPublicKeyString);
   console.log("Private key is: " + window.myPrivateKeyString);
 
-  if (local_store.getItem("DeviceAlias")) {
-    document.getElementById('deviceAliasLocalStore').innerHTML = local_store.getItem("DeviceAlias");
+  try {
+    if (local_store.getItem("DeviceAlias")) {
+        document.getElementById('deviceAliasLocalStore').innerHTML = local_store.getItem("DeviceAlias");
+    }
+  }  catch (error) {
+      console.error("Error: " + error);
   }
 
   await initial_load();
 };
 
 init();
+
+listDevicesBtn.addEventListener('click', async() => {
+  const identity = await authClient.getIdentity();
+  const canisterId = Principal.fromText(keySyncCanister);
+
+  const actor = Actor.createActor(keySync_idlFactory, {
+    agent: new HttpAgent({
+      host: "https://ic0.app/",
+      identity,
+    }),
+    canisterId,
+  });
+
+  DeviceListResponse.innerText = 'Loading...';
+
+  // Similar to the sample project on dfx new:
+  actor.get_devices().then(devices => {
+    whoAmIResponseEl.innerText = devices.toText();
+  });
+});
 
 whoamiBtn.addEventListener('click', async () => {
   const identity = await authClient.getIdentity();
