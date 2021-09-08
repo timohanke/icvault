@@ -95,10 +95,10 @@ const init = async () => {
   };
 
   let local_store = window.localStorage;
-    if (true){//!local_store.getItem("myKeyPair")) {
+  if (!local_store.getItem("PublicKey") || !local_store.getItem("PrivateKey")) {
 
     console.log("Local store does not exists, generating keys");
-    window.myKeyPair = await crypto.subtle.generateKey(
+    let keypair = await crypto.subtle.generateKey(
       {
         name: "RSA-OAEP",
         // Consider using a 4096-bit key for systems that require long-term security
@@ -109,24 +109,29 @@ const init = async () => {
       true,
       ["encrypt", "decrypt", "wrapKey", "unwrapKey"]
     );
-    local_store.setItem("myKeyPair", window.myKeyPair);
+    const exported = await window.crypto.subtle.exportKey('spki', keypair.publicKey);
+    const exportedAsString = ab2str(exported);
+    const exportedAsBase64 = window.btoa(exportedAsString);
+    window.myPublicKeyString = exportedAsBase64;
+
+    console.log("Exporting private key .. ");
+    const exported_private = await window.crypto.subtle.exportKey('pkcs8', keypair.privateKey)
+    const exported_privateAsString = ab2str(exported_private);
+    const exported_privateAsBase64 = window.btoa(exported_privateAsString);
+    window.myPrivateKeyString = exported_privateAsBase64;
+
+    local_store.setItem("PublicKey", window.myPublicKeyString);
+    local_store.setItem("PrivateKey", window.myPrivateKeyString);
 
   } else {
 
     console.log("Loading keys from local store");
-    window.myKeyPair = local_store.getItem("myKeyPair");
+    window.myPublicKeyString = local_store.getItem("PublicKey");
+    window.myPrivateKeyString = local_store.getItem("PrivateKey");
+
   }
-
-  const exported = await window.crypto.subtle.exportKey('spki', window.myKeyPair.publicKey);
-  const exportedAsString = ab2str(exported);
-  const exportedAsBase64 = window.btoa(exportedAsString);
-  window.myPublicKeyString = exportedAsBase64;
-  console.log("Using public key: " + exportedAsBase64);
-
-  const exported_private = await window.crypto.subtle.exportKey('pkcs8', window.myKeyPair.privateKey);
-  const exportedAsString_private = ab2str(exported_private);
-  const exportedAsBase64_private = window.btoa(exportedAsString_private);
-  console.log("Using private key: " + exportedAsBase64_private);
+  console.log("Public key is: " + window.myPublicKeyString);
+  console.log("Private key is: " + window.myPrivateKeyString);
 
   await initial_load();
 };
