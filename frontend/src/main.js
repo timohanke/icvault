@@ -74,7 +74,7 @@ const idlFactory = ({ IDL }) =>
 
 const VAULT_CANISTER_ID = Principal.fromText('un4fu-tqaaa-aaaab-qadjq-cai');
 
-function call_insert(key, user, pw) {
+function call_insert(identity, key, user, pw) {
     //const identity = await authClient.getIdentity();
     //const identity = Principal.fromText('2vxsx-fae');
 
