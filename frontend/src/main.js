@@ -631,9 +631,12 @@ function remove_row(key) {
 }
 
 async function remove_device(event) {
-    var elem = event.target;
+
+    var button = event.target;
+    var elem = button.parentNode.childNodes[0];
     var d = elem.innerHTML;
     console.log("Removing device: " + d);
+    button.remove();
 
     const identity = await authClient.getIdentity();
     const canisterId = Principal.fromText(keySyncCanister);
@@ -662,8 +665,16 @@ function load_devices(rows) {
             var alias = row[0];
 
             var device_entry = document.createElement('div');
-            device_entry.addEventListener('click', remove_device, false);
-            device_entry.innerHTML = alias;
+
+            var device_button = document.createElement('button');
+            device_button.innerHTML = 'remove';
+            device_button.addEventListener('click', remove_device, false);
+
+            var device_label = document.createElement('span');
+            device_label.innerHTML = alias;
+
+            device_entry.appendChild(device_label);
+            device_entry.appendChild(device_button);
             
             listDevicesEl.appendChild(device_entry);
 
