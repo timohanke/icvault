@@ -1,10 +1,5 @@
-# Key-Value Store
+# KV Store Canister
 
 This canister is a simple key-value store.
 
-The canister can be deployed using `dfx`:
-
-```bash
-cd kv_store/
-dfx deploy --no-wallet --network ic kv_store
-```
+The canister can be deployed by running the `Makefile` (note that `dfx` is required for the deployment).
