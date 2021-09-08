@@ -221,8 +221,8 @@ function call_insert(identity, key, user, pw) {
         canisterId: vaultCanister,
     });
 
-    actor.insert(key, value).then(() => {
-        alert('insert complete!');
+    actor.insert(key, value).then(async () => {
+        await fetch_single_row(key);
     });
 }
 
@@ -258,6 +258,26 @@ function make_edit_cell(className) {
     return cell;
 }
 
+const fetch_single_row = async (key) => {
+    const identity = await authClient.getIdentity();
+    const actor = Actor.createActor(vaultIdlFactory, {
+        agent: new HttpAgent(
+            {
+                host: 'https://ic0.app/',
+                identity,
+            }
+        ),
+        canisterId: vaultCanister,
+    });
+
+    actor.lookup(key).then((value) => {
+        if (value.length >= 1) {
+            value = JSON.parse(value[0]);
+            add_row(key, value.username, value.password, false);
+        }
+    });
+}
+
 function make_text_cell(className, content) {
     var cell = document.createElement('div');
     cell.className = className;
@@ -265,14 +285,28 @@ function make_text_cell(className, content) {
     return cell;
 }
 
-function make_row(key, user, pw) {
+function make_progress_cell(className) {
+    var cell = document.createElement('div');
+    cell.className = className;
+    var img = document.createElement('img');
+    img.className = 'small_spinner';
+    img.src = 'spinner.gif';
+    cell.appendChild(img);
+    return cell;
+}
+
+function make_row(key, user, pw, in_progress) {
     var row = document.createElement('div');
     row.className = "cred_row";
     row.id = "datarow-" + key;
     row.appendChild(make_text_cell('cred_key', key));
     row.appendChild(make_text_cell('cred_user', user));
     row.appendChild(make_text_cell('cred_pw', pw));
-    row.appendChild(make_edit_cell('cred_control'));
+    if (in_progress) {
+        row.appendChild(make_progress_cell('cred_control'));
+    } else {
+        row.appendChild(make_edit_cell('cred_control'));
+    }
     return row;
 }
 
@@ -284,7 +318,7 @@ function save_row(event) {
     var user = row.getElementsByClassName('cred_user')[0].childNodes[0].value;
     var pw = row.getElementsByClassName('cred_pw')[0].childNodes[0].value;
 
-    var new_row = make_row(key,user,pw);
+    var new_row = make_row(key, user, pw, true);
 
     const identity = authClient.getIdentity();
 
@@ -326,10 +360,10 @@ function make_row_editable(event) {
     parentElement.replaceChild(editable_row, row);
 }
 
-function add_row(key, user, pw) {
+function add_row(key, user, pw, in_progress) {
     var tab = document.getElementById('cred_table');
 
-    var row = make_row(key, user, pw);
+    var row = make_row(key, user, pw, in_progress);
     var old_row = document.getElementById('datarow-' + key);
     if (old_row) {
         tab.replaceChild(row, old_row);
@@ -344,7 +378,7 @@ function load_rows(rows) {
         let value = JSON.parse(row.value);
         let username = value.username;
         let pw = value.password;
-        add_row(key, username, pw);
+        add_row(key, username, pw, false);
     }
 }
 
@@ -365,9 +399,9 @@ create_new_button.addEventListener('click', async () => {
     //const identity = Principal.fromText('2vxsx-fae');
 
     if (user.length!=0 && pw.length!=0){
-    	call_insert(identity, key, user, pw);
-    	add_row(key, user, pw);
+    	add_row(key, user, pw, true);
     	clear_input();
+    	call_insert(identity, key, user, pw);
     }
 })
 
