@@ -27,6 +27,21 @@
         .app_state_invisible {
             display: none
         }
+        #app_view_loading {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.2);
+            z-index: 2;
+            cursor: pointer;
+            text-align: center;
+        }
+        .overlay_spinner {
+        }
     </style>
   <body>
 
@@ -70,7 +85,7 @@
 
     <div class="app_state">
         <div id="app_view_loading" class="app_state_visible">
-            Loading vault data...
+            <img class="overlay_spinner" src="spinner.gif" />
         </div>
         <div id="app_view_table" class="app_state_invisible">
             <div class="cred_table" id="cred_table">
