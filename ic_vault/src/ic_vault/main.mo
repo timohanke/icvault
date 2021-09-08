@@ -56,6 +56,31 @@ actor {
     
   };
 
+  public shared(msg) func delete(key : Key) : async () {
+      var option = vault_map.get(msg.caller);
+      switch (option) {
+          case (?map) {
+            map.delete(key)
+          };
+          case null {
+              // error processing missing
+          };
+      };
+  };
+
+  public shared(msg) func replace(key : Key, value: Value) : async ?Value {
+      var option = vault_map.get(msg.caller);
+      switch (option) {
+          case (?map) {
+              map.replace(key, value)
+          };
+          case null {
+              null
+              // error processing missing
+          };
+      };
+  };
+
   stable var entries : [(Principal, [(Key, Value)])] = [];
   system func preupgrade() {
       entries := [];
