@@ -3,6 +3,13 @@ In order to support Dapps handling sensitive data we need seamless end-to-end en
 
 # Deployment
 
+IC Vault is decomposed into the following components:
+
+* UI is located in [frontend](/frontend)
+* Managment of devices is handeld by the Motoko [key_sync](/kv_store) canister 
+* Storage of sensitive data is handeld by the [kv_store](/kv_store) canister
+* Assets of the frontend are provided by the kv_store_assets caniser
+
 TODO
 
 # How to use it
