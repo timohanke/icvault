@@ -94,14 +94,7 @@ const init = async () => {
   };
 
   let local_store = window.localStorage;
-  if (!local_store.getItem("test")) {
-    console.log("Local store does not exists, generating keys");
-    local_store.setItem("test", "bla");
-  } else {
-    console.log("Loading keys from local store");
-    console.log("Loaded: " + local_store.getItem("test"));
-  }
-  if (!local_store.getItem("myKeyPair")) {
+    if (true){//!local_store.getItem("myKeyPair")) {
 
     console.log("Local store does not exists, generating keys");
     window.myKeyPair = await crypto.subtle.generateKey(
