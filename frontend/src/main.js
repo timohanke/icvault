@@ -10,6 +10,7 @@ const whoAmIResponseEl = document.getElementById('whoamiResponse');
 const principalEl = document.getElementById('principal');
 
 const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
+const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
 
 let authClient;
 
@@ -44,7 +45,7 @@ whoamiBtn.addEventListener('click', async () => {
       whoami: IDL.Func([], [IDL.Principal], ['update']),
     });
 
-  const canisterId = keySyncCanister;
+  const canisterId = Principal.fromText(keySyncCanister);
 
   const actor = Actor.createActor(idlFactory, {
     agent: new HttpAgent({
@@ -77,7 +78,7 @@ function call_insert(key, user, pw) {
         ], [], ['update']),
     });
 
-    const canisterId = Principal.fromText('uvf7r-liaaa-aaaah-qabnq-cai');
+    const canisterId = Principal.fromText(vaultCanister);
 
     const actor = Actor.createActor(idlFactory, {
         agent: new HttpAgent(
