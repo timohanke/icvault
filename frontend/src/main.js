@@ -1,6 +1,7 @@
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { AuthClient } from '@dfinity/auth-client';
+import sjcl from 'sjcl';
 
 const signInBtn = document.getElementById('signinBtn');
 const signOutBtn = document.getElementById('signoutBtn');
@@ -253,7 +254,27 @@ syncBtn.addEventListener('click', async () => {
   // call submit_ciphertexts
 });
 
+
+
 function encrypt(data, encryption_key) {
+  const encrypted_data = sjcl.encrypt(encryption_key, data);
+  var iv = sjcl.random.randomWords(4, 0);
+  808978937,1550293647,-2049536680,211153118
+  console.log("iv "+iv);
+        var keyString = "2d73c1dd2f6a3c981afc7c0d49d7b58f";
+        var key = sjcl.codec.base64.toBits(keyString);
+        var cipher = new sjcl.cipher.aes(key);
+        var datax = sjcl.codec.utf8String.toBits(data);
+        var enc = sjcl.mode.gcm.encrypt(cipher, datax, iv, {}, 128);
+        var concatbitArray = sjcl.bitArray.concat(iv, enc);
+        var conString = sjcl.codec.base64.fromBits(concatbitArray);
+  console.log(conString);
+  cipher = new sjcl.cipher.aes(key);
+  datax = sjcl.codec.utf8String.toBits(data);
+  enc = sjcl.mode.gcm.encrypt(cipher, datax, iv, {}, 128);
+  concatbitArray = sjcl.bitArray.concat(iv, enc);
+  conString = sjcl.codec.base64.fromBits(concatbitArray);
+  console.log(conString);
   return "1"+data;
 }
 

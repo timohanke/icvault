@@ -46,6 +46,7 @@ module.exports = {
       events: require.resolve('events/'),
       stream: require.resolve('stream-browserify/'),
       util: require.resolve('util/'),
+      crypto: require.resolve('crypto-browserify'),
     },
   },
   devtool: 'source-map',
