@@ -7,7 +7,7 @@ import Principal "mo:base/Principal";
 
 actor {
 
-  // This actor provides KV store functionality, where users are only able to modify 
+  // This actor provides KV store functionality, where users are only able to modify their own KV store
   type Key = Text;
   type Value = Text;
   type KVStore = Map.HashMap<Key, Value>;
