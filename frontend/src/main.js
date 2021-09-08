@@ -2,8 +2,6 @@ import { Actor, HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { AuthClient } from '@dfinity/auth-client';
 
-import jsSHA from "jssha";
-
 const signInBtn = document.getElementById('signinBtn');
 const signOutBtn = document.getElementById('signoutBtn');
 const whoamiBtn = document.getElementById('whoamiBtn');
@@ -12,11 +10,8 @@ const whoAmIResponseEl = document.getElementById('whoamiResponse');
 const principalEl = document.getElementById('principal');
 const registerDeviceEl = document.getElementById('registerDeviceResponse');
 const deviceAliasEl = document.getElementById('deviceAlias');
-<<<<<<< HEAD
-=======
 const seedResponseEl = document.getElementById('seedResponse');
 const syncResponseEl = document.getElementById('syncResponse');
->>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
 
 const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
 // const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
@@ -71,6 +66,17 @@ function ab2str(buf) {
   return String.fromCharCode.apply(null, new Uint8Array(buf));
 }
 
+function change_app_view(state) {
+    for (const view of ['loading', 'table']) {
+        var e = document.getElementById('app_view_' + view);
+        if (view == state) {
+            e.className = 'app_state_visible';
+        } else {
+            e.className = 'app_state_invisible';
+        }
+    }
+}
+
 const init = async () => {
   authClient = await AuthClient.create();
   principalEl.innerText = await authClient.getIdentity().getPrincipal();
@@ -90,18 +96,7 @@ const init = async () => {
   };
 
   let local_store = window.localStorage;
-<<<<<<< HEAD
-  if (!local_store.getItem("test")) {
-    console.log("Local store does not exists, generating keys");
-    local_store.setItem("test", "bla");
-  } else {
-    console.log("Loading keys from local store");
-    console.log("Loaded: " + local_store.getItem("test"));
-  }
-  if (!local_store.getItem("myKeyPair")) {
-=======
   if (!local_store.getItem("PublicKey") || !local_store.getItem("PrivateKey")) {
->>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
 
     console.log("Local store does not exists, generating keys");
     let keypair = await crypto.subtle.generateKey(
@@ -135,18 +130,11 @@ const init = async () => {
     window.myPublicKeyString = local_store.getItem("PublicKey");
     window.myPrivateKeyString = local_store.getItem("PrivateKey");
 
-<<<<<<< HEAD
-  const exported = await window.crypto.subtle.exportKey('spki', window.myKeyPair.publicKey);
-  const exportedAsString = ab2str(exported);
-  const exportedAsBase64 = window.btoa(exportedAsString);
-  window.myPublicKeyString = exportedAsBase64;
-=======
   }
   console.log("Public key is: " + window.myPublicKeyString);
   console.log("Private key is: " + window.myPrivateKeyString);
 
   await initial_load();
->>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
 };
 
 init();
@@ -174,17 +162,8 @@ whoamiBtn.addEventListener('click', async () => {
 
 registerDeviceBtn.addEventListener('click', async () => {
   const identity = await authClient.getIdentity();
-
-  // We either have an Agent with an anonymous identity (not authenticated),
-  // or already authenticated agent, or parsing the redirect from window.location.
-  const idlFactory = ({ IDL }) =>
-    IDL.Service({
-      register_device: IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], ['update']),
-    });
-
   const canisterId = Principal.fromText(keySyncCanister);
-
-  const actor = Actor.createActor(idlFactory, {
+  const actor = Actor.createActor(keySync_idlFactory, {
     agent: new HttpAgent({
       host: "https://ic0.app/",
       identity,
@@ -192,12 +171,6 @@ registerDeviceBtn.addEventListener('click', async () => {
     canisterId,
   });
 
-<<<<<<< HEAD
-  registerDeviceEl.innerText = 'Loading...';
-
-  actor.register_device(deviceAliasEl.value, window.myPublicKeyString).then(result => {
-    registerDeviceEl.innerText = result;
-=======
   registerDeviceEl.innerText = 'Registering public key for device ' + deviceAliasEl.value + ' : ' + window.myPublicKeyString;
 
   actor.register_device(deviceAliasEl.value, window.myPublicKeyString).then(result => {
@@ -206,26 +179,22 @@ registerDeviceBtn.addEventListener('click', async () => {
     } else {
         registerDeviceEl.innerText += "\nDevice alias already registered. Choose a unique alias. To overwrite an existing device call remove_device first (currently only through Candid UI).";
     }
->>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
   });
 });
 
-function encrypt(data, encryption_key) {
-  const hash = sha256(data);
-  return data + hash;
-}
+seedBtn.addEventListener('click', async () => {
+  const identity = await authClient.getIdentity();
+  const canisterId = Principal.fromText(keySyncCanister);
+  const actor = Actor.createActor(keySync_idlFactory, {
+    agent: new HttpAgent({
+      host: "https://ic0.app/",
+      identity,
+    }),
+    canisterId,
+  });
 
-function decrypt(data, decryption_key) {
-  return data;
-}
+  seedResponseEl.innerText = 'Checking if the secret is already defined ("seeded")...';
 
-<<<<<<< HEAD
-function sha256(message) {
-  const shaObj = new jsSHA("SHA-256", "TEXT", { encoding: "UTF8" });
-  shaObj.update(message);
-  return shaObj.getHash("HEX");
-}
-=======
   actor.isSeeded().then( result => {
     if (result) {
         seedResponseEl.innerText += '\nAlready seeded. Now have to sync the secret.';
@@ -242,10 +211,10 @@ function sha256(message) {
         ).then( (key) => {
             // Wrap key for own pubkey
             window.crypto.subtle.wrapKey(
-                'raw', 
-                key, 
-                window.myKeyPair.publicKey,  // TODO: this variable does not currently exist 
-                { name: "RSA-OAEP" } 
+                'raw',
+                key,
+                window.myKeyPair.publicKey,  // TODO: this variable does not currently exist
+                { name: "RSA-OAEP" }
             ).then( (wrapped) => {
                 // serialize it
                 const exportedAsString = ab2str(wrapped);
@@ -260,7 +229,6 @@ function sha256(message) {
     }
   })
 });
->>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
 
 syncBtn.addEventListener('click', async () => {
   const identity = await authClient.getIdentity();
@@ -285,12 +253,31 @@ syncBtn.addEventListener('click', async () => {
   // call submit_ciphertexts
 });
 
+
+
 function encrypt(data, encryption_key) {
-  return "1"+data;
+  var CryptoJS = require("crypto-js");
+  return CryptoJS.AES.encrypt(data, encryption_key).toString();;
+}
+
+function deterministic_encrypt(data, encryption_key) {
+  var CryptoJS = require("crypto-js");
+  var init_vector = CryptoJS.enc.Base64.parse("0000000000000000000000");
+  var salt = CryptoJS.enc.Base64.parse("0000000000000000000000");
+  var key_hex = CryptoJS.enc.Hex.stringify(encryption_key);
+  var key = CryptoJS.enc.Hex.parse(key_hex);
+  var data_hex =  CryptoJS.enc.Hex.stringify(data);
+  var input_data = CryptoJS.enc.Hex.parse(data_hex);
+  console.log(">>>> Init. vector: " + init_vector);
+  var encrypted_data = CryptoJS.AES.encrypt(input_data, key, {iv: init_vector, salt: salt}).toString();
+  console.log("**** Data: " + data +"  Determ. encryption: " + encrypted_data);
+  return encrypted_data;
 }
 
 function decrypt(data, decryption_key) {
-  return data.substring(1);
+  var CryptoJS = require("crypto-js");
+  var bytes  = CryptoJS.AES.decrypt(data, decryption_key);
+  return bytes.toString(CryptoJS.enc.Utf8);
 }
 
 function call_insert(identity, key, user, pw) {
@@ -307,19 +294,11 @@ function call_insert(identity, key, user, pw) {
         ),
         canisterId: vaultCanister,
     });
-<<<<<<< HEAD
 
-    const encrypted_key = encrypt(key, "");
-    const encrypted_value = encrypt(value, "");
-    actor.insert(encrypted_key, encrypted_value).then(() => {
-        alert('insert complete for key: ' + encrypted_key);
-=======
-	
-    const encrypted_key = encrypt(key, "verysecret");
+    const encrypted_key = deterministic_encrypt(key, "verysecret");
     const encrypted_value = encrypt(value, "verysecret");
     actor.insert(encrypted_key, encrypted_value).then(async () => {
         await fetch_single_row(key);
->>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
     });
 }
 
@@ -373,7 +352,7 @@ const fetch_single_row = async (key) => {
         canisterId: vaultCanister,
     });
 
-    actor.lookup(encrypt(key, "verysecret")).then((value) => {
+    actor.lookup(deterministic_encrypt(key, "verysecret")).then((value) => {
         if (value.length >= 1) {
             value = JSON.parse(decrypt(value[0], "verysecret"));
             add_row(key, value.username, value.password, false);
@@ -482,7 +461,7 @@ function start_delete_row(event) {
         canisterId: vaultCanister,
     });
 
-    actor.delete(encrypt(key, "verysecret")).then(result => {
+    actor.delete(deterministic_encrypt(key, "verysecret")).then(result => {
         fetch_single_row(key);
     });
 }
@@ -554,9 +533,11 @@ const initial_load = async () => {
 
     actor.get_kvstore().then(result => {
         load_rows(result);
+        change_app_view('table');
     });
 }
 
 refresh.addEventListener('click', async () => {
+    change_app_view('loading');
     initial_load();
 })
