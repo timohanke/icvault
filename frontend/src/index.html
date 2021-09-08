@@ -21,43 +21,43 @@
         }
     </style>
   <body>
-<!--
+
     <div>
-      <h1>Identity</h1>
+      <h1>IC Vault</h1>
       <h2>Sign In</h2>
-      <div>
-        <label for="idpUrl" style="display: inline-block; width: 120px">Identity Provider: </label>
-        <input type="text" id="idpUrl" value="https://identity.messaging.ic0.app/#authorize" />
-      </div>
       <button id="signinBtn">Sign In</button>
       <button id="signoutBtn">Sign Out</button>
-      <h2>Principal:</h2>
+
+      <br />
+      <br />
+
+      Current principal: 
       <div id="principal"></div>
     </div>
 
     <div>
-      <h1>Contact the IC</h1>
-      <label for="hostUrl" style="display: inline-block; width: 120px">Replica URL: </label>
-      <input type="text" id="hostUrl" value="https://gw.dfinity.network/" />
-      <br />
-      <label for="canisterId" style="display: inline-block; width: 120px">Canister ID: </label>
-      <input type="text" id="canisterId" value="4k2wq-cqaaa-aaaab-qac7q-cai" />
+      <h2>KeySync</h2>
     </div>
     <div>
       <button id="whoamiBtn">Who Am I?</button>
       <div id="whoamiResponse"></div>
     </div>
--->
 
+    <div>
+      <h2>Vault</h2>
+    </div>
     <div class="cred_table" id="cred_table">
         <div class="cred_row" id="add_entry_row">
             <div class="cred_key">
+                <label>Application: </label>
                 <input type="text" class="key_input" />
             </div>
             <div class="cred_user">
+                <label>Username: </label>
                 <input type="text" class="user_input" />
             </div>
             <div class="cred_pw">
+                <label>Password: </label>
                 <input type="text" class="pw_input" />
             </div>
             <div class="cred_control">

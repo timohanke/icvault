@@ -7,11 +7,10 @@ const signOutBtn = document.getElementById('signoutBtn');
 const whoamiBtn = document.getElementById('whoamiBtn');
 const hostUrlEl = document.getElementById('hostUrl');
 const whoAmIResponseEl = document.getElementById('whoamiResponse');
-const canisterIdEl = document.getElementById('canisterId');
 const principalEl = document.getElementById('principal');
-const idpUrlEl = document.getElementById('idpUrl');
 
-/*
+const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
+
 let authClient;
 
 const init = async () => {
@@ -21,7 +20,7 @@ const init = async () => {
   // Redirect to the identity provider
   signInBtn.onclick = async () => {
     authClient.login({
-      identityProvider: idpUrlEl.value,
+      identityProvider: "https://identity.ic0.app",
       onSuccess: async () => {
         principalEl.innerText = await authClient.getIdentity().getPrincipal();
       },
@@ -45,11 +44,11 @@ whoamiBtn.addEventListener('click', async () => {
       whoami: IDL.Func([], [IDL.Principal], ['update']),
     });
 
-  const canisterId = Principal.fromText(canisterIdEl.value);
+  const canisterId = keySyncCanister;
 
   const actor = Actor.createActor(idlFactory, {
     agent: new HttpAgent({
-      host: hostUrlEl.value,
+      host: "https://ic0.app/",
       identity,
     }),
     canisterId,
@@ -62,7 +61,6 @@ whoamiBtn.addEventListener('click', async () => {
     whoAmIResponseEl.innerText = principal.toText();
   });
 });
-*/
 
 function call_insert(key, user, pw) {
     //const identity = await authClient.getIdentity();
