@@ -63,20 +63,22 @@ whoamiBtn.addEventListener('click', async () => {
   });
 });
 
-function call_insert(identity, key, user, pw) {
-    const idlFactory = ({ IDL }) =>
-        IDL.Service({
-        insert: IDL.Func([
-            IDL.Text,
-            IDL.Record({
-                username: IDL.Text,
-                password: IDL.Text,
-            })
-        ], [], ['update']),
+
+const idlFactory = ({ IDL }) =>
+    IDL.Service({
+        insert:
+            IDL.Func([IDL.Text, IDL.Text], [], ['update']),
+        get_kvstore:
+            IDL.Func([], [IDL.Vec(IDL.Record({"key": IDL.Text, "value": IDL.Text}))], []),
     });
 
-    const canisterId = Principal.fromText(vaultCanister);
+const VAULT_CANISTER_ID = Principal.fromText('un4fu-tqaaa-aaaab-qadjq-cai');
 
+function call_insert(key, user, pw) {
+    //const identity = await authClient.getIdentity();
+    //const identity = Principal.fromText('2vxsx-fae');
+
+    const value = JSON.stringify({username: user, password: pw});
     const actor = Actor.createActor(idlFactory, {
         agent: new HttpAgent(
             {
@@ -84,10 +86,10 @@ function call_insert(identity, key, user, pw) {
                 identity,
             }
         ),
-        canisterId,
+        canisterId: VAULT_CANISTER_ID,
     });
 
-    actor.insert(key, {username: user, password: pw}).then(() => {
+    actor.insert(key, value).then(() => {
         alert('insert complete!');
     });
 }
@@ -111,54 +113,6 @@ function make_input_cell(id) {
     return cell;
 }
 
-
-function save_row(event) {
-
-    var row = event.target.parentNode.parentNode;
-
-    var new_row = document.createElement('div');
-    new_row.className = "cred_row";
-    new_row.appendChild(make_text_cell('cred_key',row.getElementsByClassName('cred_key')[0].childNodes[0].value));
-    new_row.appendChild(make_text_cell('cred_user',row.getElementsByClassName('cred_user')[0].childNodes[0].value));
-    new_row.appendChild(make_text_cell('cred_pw', row.getElementsByClassName('cred_pw')[0].childNodes[0].value));
-    new_row.appendChild(make_edit_cell('cred_control')); 
-
-    var parentElement = row.parentNode;
-    parentElement.replaceChild(new_row, row);
-}
-
-function make_save_cell(className) {
-    var cell = document.createElement('div');
-    cell.className = className;
-
-    var edit_button = document.createElement('input');
-    edit_button.setAttribute("type", "button");
-    edit_button.setAttribute("value", "save");
-    edit_button.addEventListener('click',save_row,false);
-
-    cell.appendChild(edit_button);
-    return cell;
-}
-
-function make_row_editable(event) {
-
-    var row = event.target.parentNode.parentNode;
-
-    var editable_row = document.createElement('div');
-    editable_row.className = row.className;
-
-    editable_row.appendChild(make_with_input_cell('cred_key',row.getElementsByClassName('cred_key')[0].childNodes[0].nodeValue));
-    editable_row.appendChild(make_with_input_cell('cred_user',row.getElementsByClassName('cred_user')[0].childNodes[0].nodeValue));
-    editable_row.appendChild(make_with_input_cell('cred_pw',row.getElementsByClassName('cred_pw')[0].childNodes[0].nodeValue));
-
-    editable_row.appendChild(make_save_cell('cred_control')); 
-
-    var parentElement = row.parentNode;
-    parentElement.replaceChild(editable_row, row);
-
-    //alert("Edit row:" + row_id + " :" + parentElement.nodeName );
-}
-
 function make_edit_cell(className) {
     var cell = document.createElement('div');
     cell.className = className;
@@ -179,17 +133,81 @@ function make_text_cell(className, content) {
     return cell;
 }
 
-function add_row(key, user, pw) {
-    var tab = document.getElementById('cred_table');
-
+function make_row(key, user, pw) {
     var row = document.createElement('div');
     row.className = "cred_row";
+    row.id = "datarow-" + key;
     row.appendChild(make_text_cell('cred_key', key));
     row.appendChild(make_text_cell('cred_user', user));
     row.appendChild(make_text_cell('cred_pw', pw));
-    row.appendChild(make_edit_cell('cred_control')); 
+    row.appendChild(make_edit_cell('cred_control'));
+    return row;
+}
 
-    tab.insertBefore(row, tab.childNodes[tab.childNodes.length - 1]);
+function save_row(event) {
+
+    var row = event.target.parentNode.parentNode;
+
+    var new_row = make_row(
+        row.getElementsByClassName('cred_key')[0].childNodes[0].value,
+        row.getElementsByClassName('cred_user')[0].childNodes[0].value,
+        row.getElementsByClassName('cred_pw')[0].childNodes[0].value);
+
+    var parentElement = row.parentNode;
+    parentElement.replaceChild(new_row, row);
+}
+
+function make_save_cell(className) {
+    var cell = document.createElement('div');
+    cell.className = className;
+
+    var edit_button = document.createElement('input');
+    edit_button.setAttribute("type", "button");
+    edit_button.setAttribute("value", "save");
+    edit_button.addEventListener('click',save_row,false);
+
+    cell.appendChild(edit_button);
+    return cell;
+}
+
+function make_row_editable(event) {
+    var row = event.target.parentNode.parentNode;
+
+    var key = row.getElementsByClassName('cred_key')[0].childNodes[0].nodeValue;
+    var editable_row = document.createElement('div');
+    editable_row.className = row.className;
+    editable_row.id = "datarow-" + key;
+
+    editable_row.appendChild(make_with_input_cell('cred_key', key));
+    editable_row.appendChild(make_with_input_cell('cred_user', row.getElementsByClassName('cred_user')[0].childNodes[0].nodeValue));
+    editable_row.appendChild(make_with_input_cell('cred_pw', row.getElementsByClassName('cred_pw')[0].childNodes[0].nodeValue));
+
+    editable_row.appendChild(make_save_cell('cred_control'));
+
+    var parentElement = row.parentNode;
+    parentElement.replaceChild(editable_row, row);
+}
+
+function add_row(key, user, pw) {
+    var tab = document.getElementById('cred_table');
+
+    var row = make_row(key, user, pw);
+    var old_row = document.getElementById('datarow-' + key);
+    if (old_row) {
+        tab.replaceChild(row, old_row);
+    } else {
+        tab.insertBefore(row, tab.childNodes[tab.childNodes.length - 1]);
+    }
+}
+
+function load_rows(rows) {
+    for (const row of rows) {
+        let key = row.key;
+        let value = JSON.parse(row.value);
+        let username = value.username;
+        let pw = value.password;
+        add_row(key, username, pw);
+    }
 }
 
 function clear_input() {
@@ -208,9 +226,28 @@ create_new_button.addEventListener('click', async () => {
     const identity = await authClient.getIdentity();
     //const identity = Principal.fromText('2vxsx-fae');
 
-    if (user.length!=0 && pw.length!=0){	
+    if (user.length!=0 && pw.length!=0){
     	call_insert(identity, key, user, pw);
     	add_row(key, user, pw);
     	clear_input();
     }
+})
+
+function initial_load() {
+    const actor = Actor.createActor(idlFactory, {
+        agent: new HttpAgent(
+            {
+                host: 'https://ic0.app/',
+            }
+        ),
+        canisterId: VAULT_CANISTER_ID,
+    });
+
+    actor.get_kvstore().then(result => {
+        load_rows(result);
+    });
+}
+
+refresh.addEventListener('click', () => {
+    initial_load();
 })
