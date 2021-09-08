@@ -206,6 +206,14 @@ seedBtn.addEventListener('click', async () => {
   })
 });
 
+function encrypt(data, encryption_key) {
+  return data;
+}
+
+function decrypt(data, decryption_key) {
+  return data;
+}
+
 function call_insert(identity, key, user, pw) {
 
     const VAULT_CANISTER_ID = Principal.fromText(vaultCanister);
@@ -220,9 +228,11 @@ function call_insert(identity, key, user, pw) {
         ),
         canisterId: vaultCanister,
     });
-
-    actor.insert(key, value).then(async () => {
-        await fetch_single_row(key);
+	
+    const encrypted_key = encrypt(key, "");
+    const encrypted_value = encrypt(value, "");
+    actor.insert(encrypted_key, encrypted_value).then(async () => {
+        await fetch_single_row(encrypted_key);
     });
 }
 
