@@ -252,9 +252,15 @@ function make_edit_cell(className) {
     var edit_button = document.createElement('input');
     edit_button.setAttribute("type", "button");
     edit_button.setAttribute("value", "edit");
-    edit_button.addEventListener('click',make_row_editable,false);
-
+    edit_button.addEventListener('click', make_row_editable, false);
     cell.appendChild(edit_button);
+
+    var delete_button = document.createElement('input');
+    delete_button.setAttribute("type", "button");
+    delete_button.setAttribute("value", "delete");
+    delete_button.addEventListener('click', start_delete_row, false);
+    cell.appendChild(delete_button);
+
     return cell;
 }
 
@@ -274,6 +280,8 @@ const fetch_single_row = async (key) => {
         if (value.length >= 1) {
             value = JSON.parse(value[0]);
             add_row(key, value.username, value.password, false);
+        } else {
+            remove_row(key);
         }
     });
 }
@@ -360,6 +368,28 @@ function make_row_editable(event) {
     parentElement.replaceChild(editable_row, row);
 }
 
+function start_delete_row(event) {
+    var row = event.target.parentNode.parentNode;
+    var key = row.getElementsByClassName('cred_key')[0].childNodes[0].nodeValue;
+    var user = row.getElementsByClassName('cred_user')[0].childNodes[0].nodeValue;
+    var pw = row.getElementsByClassName('cred_pw')[0].childNodes[0].nodeValue;
+
+    add_row(key, user, pw, true);
+
+    const actor = Actor.createActor(vaultIdlFactory, {
+        agent: new HttpAgent(
+            {
+                host: 'https://ic0.app/',
+            }
+        ),
+        canisterId: vaultCanister,
+    });
+
+    actor.delete(key).then(result => {
+        fetch_single_row(key);
+    });
+}
+
 function add_row(key, user, pw, in_progress) {
     var tab = document.getElementById('cred_table');
 
@@ -369,6 +399,14 @@ function add_row(key, user, pw, in_progress) {
         tab.replaceChild(row, old_row);
     } else {
         tab.insertBefore(row, tab.childNodes[tab.childNodes.length - 1]);
+    }
+}
+
+function remove_row(key) {
+    var tab = document.getElementById('cred_table');
+    var old_row = document.getElementById('datarow-' + key);
+    if (old_row) {
+        old_row.remove();
     }
 }
 
