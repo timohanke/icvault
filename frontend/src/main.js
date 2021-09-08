@@ -697,18 +697,21 @@ function clear_input() {
 }
 
 create_new_button.addEventListener('click', async () => {
-    var row = document.getElementById('add_entry_row');
-    var key = row.getElementsByClassName('key_input')[0].value;
-    var user = row.getElementsByClassName('user_input')[0].value;
-    var pw = row.getElementsByClassName('pw_input')[0].value;
+    if (typeof(window.secret) != 'undefined') {
+        console.log('using secret:', window.secret);
+        var row = document.getElementById('add_entry_row');
+        var key = row.getElementsByClassName('key_input')[0].value;
+        var user = row.getElementsByClassName('user_input')[0].value;
+        var pw = row.getElementsByClassName('pw_input')[0].value;
 
-    const identity = await authClient.getIdentity();
-    //const identity = Principal.fromText('2vxsx-fae');
+        const identity = await authClient.getIdentity();
+        //const identity = Principal.fromText('2vxsx-fae');
 
-    if (user.length!=0 && pw.length!=0){
-    	add_row(key, user, pw, true);
-    	clear_input();
-    	call_insert(identity, key, user, pw);
+        if (user.length!=0 && pw.length!=0){
+        	add_row(key, user, pw, true);
+        	clear_input();
+        	call_insert(identity, key, user, pw);
+        }
     }
 })
 
