@@ -301,7 +301,7 @@ syncBtn.addEventListener('click', async () => {
             syncResponseEl.innerText += '\nOwn public key is not registered. Go back to step 1.';
             console.log('get_ciphertext error: notFound');
         } else {
-            syncResponseEl.innerText += '\nOwn public key is not synced. Do step 3 on a synced device.';
+            syncResponseEl.innerText += '\nOwn public key is not synced. Do step 3 on a synced device. Or do step 2 if this is the first device.';
             console.log('get_ciphertext error: notSynced');
         }
     } else {
@@ -323,9 +323,12 @@ syncBtn.addEventListener('click', async () => {
             true,
             [ "encrypt", "decrypt"]
         ).then((unwrapped) => {
-           syncResponseEl.innerText += '\nDone.';
+            syncResponseEl.innerText += '\nDone.';
+            // store key in window.secret
+            window.crypto.subtle.exportKey('raw', unwrapped).then((exported) => {
+                window.secret = ab2str(window.btoa(exported));
+            });
         });
-          // store key in window.thesecret
 
           // re-encrypt for others
           // call submit_ciphertexts
