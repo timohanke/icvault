@@ -6,7 +6,7 @@ In order to support Dapps handling sensitive data we need seamless end-to-end en
 IC Vault is decomposed into the following components:
 
 * UI is located in [frontend](/frontend)
-* Managment of devices is handeld by the Motoko [key_sync](/kv_store) canister 
+* Managment of devices is handeld by the Motoko [key_sync](/kv_sync) canister 
 * Storage of sensitive data is handeld by the [kv_store](/kv_store) canister
 * Assets of the frontend are provided by the kv_store_assets caniser
 
@@ -16,10 +16,10 @@ TODO
 
 The IC Vault front page defines the basic workflow. The following steps have to be performed during first use:
 * The user needs to sign into the IC. 
-* Next, the user registers a device. (More devices can be registered as needed.) 
-* On first use a secret key is seeded, which is further on utilized for storing sensitive data in the kv_store canister.
-* This secret key can be retrieved using the public key of the Internet Identity 
-* Next, the IC Vault can be used to inserted, updated and delete sensitive data.
+* Next, the user registers a device. (More devices can be registered as needed.) This results in generating a public keypair. The secret key together with a nickname is stored in the local storage of the browser.  
+* A shared secret is seeded which is encrypted via the public key of the device and handed over to the key_sync canister. 
+
+Futher details can be found in the design document (see below).
 
 On consecutive accesses to the IC Vault the user needs to sign into the IC and when using a registered device the sensitive data can be seamlessly accessed.  
 
