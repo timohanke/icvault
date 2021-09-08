@@ -159,6 +159,10 @@ const init = async () => {
       console.error("Failed to import public key: " + err);
   });
 
+  if (local_store.getItem("DeviceAlias")) {
+    document.getElementById('deviceAliasLocalStore').innerHTML = local_store.getItem("DeviceAlias");
+  }
+    
   window.myPrivateKey = await window.crypto.subtle.importKey(
       'pkcs8',
       str2ab(window.atob(window.myPrivateKeyString)),
@@ -216,6 +220,7 @@ registerDeviceBtn.addEventListener('click', async () => {
 
   actor.register_device(deviceAliasEl.value, window.myPublicKeyString).then(result => {
     if (result) {
+        window.localStorage.setItem("DeviceAlias", deviceAliasEl.value);
         registerDeviceEl.innerText += "\nDone.";
     } else {
         registerDeviceEl.innerText += "\nDevice alias already registered. Choose a unique alias. To overwrite an existing device call remove_device first (currently only through Candid UI).";
