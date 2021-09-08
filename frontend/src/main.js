@@ -8,11 +8,20 @@ const whoamiBtn = document.getElementById('whoamiBtn');
 const hostUrlEl = document.getElementById('hostUrl');
 const whoAmIResponseEl = document.getElementById('whoamiResponse');
 const principalEl = document.getElementById('principal');
+const registerDeviceEl = document.getElementById('registerDeviceResponse');
+const deviceAliasEl = document.getElementById('deviceAlias');
 
 const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
 const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
 
 let authClient;
+
+var myKeyPair = "";
+var myPublicKey = "";
+
+function ab2str(buf) {
+  return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
 
 const init = async () => {
   authClient = await AuthClient.create();
@@ -31,7 +40,25 @@ const init = async () => {
   signOutBtn.onclick = async () => {
     authClient.logout();
   };
+
+  // generate new keypair for this device/window
+  // TODO: check in local storage first
+  window.myKeyPair = await window.crypto.subtle.generateKey(
+    {
+      name: "ECDSA",
+      namedCurve: "P-384"
+    },
+    true,
+    ["sign", "verify"]
+    );
+
+  const exported = await window.crypto.subtle.exportKey('spki', window.myKeyPair.publicKey);
+  const exportedAsString = ab2str(exported);
+  const exportedAsBase64 = window.btoa(exportedAsString);
+  window.myPublicKeyString = exportedAsBase64;
+
 };
+
 
 init();
 
@@ -60,6 +87,33 @@ whoamiBtn.addEventListener('click', async () => {
   // Similar to the sample project on dfx new:
   actor.whoami().then(principal => {
     whoAmIResponseEl.innerText = principal.toText();
+  });
+});
+
+registerDeviceBtn.addEventListener('click', async () => {
+  const identity = await authClient.getIdentity();
+
+  // We either have an Agent with an anonymous identity (not authenticated),
+  // or already authenticated agent, or parsing the redirect from window.location.
+  const idlFactory = ({ IDL }) =>
+    IDL.Service({
+      register_device: IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], ['update']),
+    });
+
+  const canisterId = Principal.fromText(keySyncCanister);
+
+  const actor = Actor.createActor(idlFactory, {
+    agent: new HttpAgent({
+      host: "https://ic0.app/",
+      identity,
+    }),
+    canisterId,
+  });
+
+  registerDeviceEl.innerText = 'Loading...';
+
+  actor.register_device(deviceAliasEl.value, window.myPublicKeyString).then(result => {
+    registerDeviceEl.innerText = result;
   });
 });
 
