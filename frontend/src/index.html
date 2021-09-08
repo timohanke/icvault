@@ -22,6 +22,11 @@
             width: auto;
             width: 25%;
         }
+        .app_state_visible {
+        }
+        .app_state_invisible {
+            display: none
+        }
     </style>
   <body>
 
@@ -34,7 +39,7 @@
       <br />
       <br />
 
-      Current principal: 
+      Current principal:
       <div id="principal"></div>
     </div>
 
@@ -58,25 +63,33 @@
     <div>
       <h2>Vault</h2>
     </div>
-    <div class="cred_table" id="cred_table">
-        <div class="cred_row" id="add_entry_row">
-            <div class="cred_key">
-                <label>Application: </label>
-                <input type="text" class="key_input" />
+
+    <div class="app_state">
+        <div id="app_view_loading" class="app_state_visible">
+            Loading vault data...
+        </div>
+        <div id="app_view_table" class="app_state_invisible">
+            <div class="cred_table" id="cred_table">
+                <div class="cred_row" id="add_entry_row">
+                    <div class="cred_key">
+                        <label>Application: </label>
+                        <input type="text" class="key_input" />
+                    </div>
+                    <div class="cred_user">
+                        <label>Username: </label>
+                        <input type="text" class="user_input" />
+                    </div>
+                    <div class="cred_pw">
+                        <label>Password: </label>
+                        <input type="text" class="pw_input" />
+                    </div>
+                    <div class="cred_control">
+                        <button id="create_new_button">add</button>
+                    </div>
+                </div>
             </div>
-            <div class="cred_user">
-                <label>Username: </label>
-                <input type="text" class="user_input" />
-            </div>
-            <div class="cred_pw">
-                <label>Password: </label>
-                <input type="text" class="pw_input" />
-            </div>
-            <div class="cred_control">
-                <button id="create_new_button">add</button>
-            </div>
+            <button id="refresh">refresh</button>
         </div>
     </div>
-    <button id="refresh">refresh</button>
   </body>
 </html>
