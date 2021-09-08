@@ -2,7 +2,7 @@
   "__Candid_UI": {
       "mercury": "uvf7r-liaaa-aaaah-qabnq-cai"
   },
-  "ic_vault": {
+  "kv_store": {
       "mercury": "uvf7r-liaaa-aaaah-qabnq-cai",
       "ic": "uvf7r-liaaa-aaaah-qabnq-cai"
   }
