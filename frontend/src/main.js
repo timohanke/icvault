@@ -156,13 +156,13 @@ registerDeviceBtn.addEventListener('click', async () => {
     canisterId,
   });
 
-  registerDeviceEl.innerText = 'Registering device...';
+  registerDeviceEl.innerText = 'Registering public key for device ' + deviceAliasEl.value + ' : ' + window.myPublicKeyString;
 
   actor.register_device(deviceAliasEl.value, window.myPublicKeyString).then(result => {
     if (result) {
-        registerDeviceEl.innerText = "New device successfully registered.";
+        registerDeviceEl.innerText += "\nDone.";
     } else {
-        registerDeviceEl.innerText = "Device alias already registered. Choose a unique alias. To overwrite an existing device call remove_device first (currently only through Candid UI).";
+        registerDeviceEl.innerText += "\nDevice alias already registered. Choose a unique alias. To overwrite an existing device call remove_device first (currently only through Candid UI).";
     }
   });
 });
@@ -185,8 +185,22 @@ seedBtn.addEventListener('click', async () => {
         seedResponseEl.innerText += '\nAlready seeded. Now have to sync the secret.';
     } else {
         seedResponseEl.innerText += '\nNot seeded. Seeding now...';
-        actor.seed("p1","c1").then( () => {
-            seedResponseEl.innerText += "\nDone.";
+        // Generate secret
+        window.crypto.subtle.generateKey(
+            {
+                name: "AES-GCM",
+                length: 256
+            },
+            true,
+            ["encrypt", "decrypt"]
+        ).then( (key) => {
+            window.thesecret = key;    
+            // Store secret in local storage
+            // Encrypt secret for own pubkey
+            // Call actor.seed
+            actor.seed(window.myPublicKeyString,"c1").then( () => {
+                seedResponseEl.innerText += "\nDone.";
+            });
         });
     }
   })
