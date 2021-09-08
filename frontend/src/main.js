@@ -99,12 +99,15 @@ const init = async () => {
 
     console.log("Local store does not exists, generating keys");
     let keypair = await crypto.subtle.generateKey(
-        {
-            name: "ECDSA",
-            namedCurve: "P-384"
-        },
-        true,
-        ["sign", "verify"]
+      {
+        name: "RSA-OAEP",
+        // Consider using a 4096-bit key for systems that require long-term security
+        modulusLength: 2048,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: "SHA-256",
+      },
+      true,
+      ["encrypt", "decrypt", "wrapKey", "unwrapKey"]
     );
     const exported = await window.crypto.subtle.exportKey('spki', keypair.publicKey);
     const exportedAsString = ab2str(exported);
@@ -113,8 +116,6 @@ const init = async () => {
 
     console.log("Exporting private key .. ");
     const exported_private = await window.crypto.subtle.exportKey('pkcs8', keypair.privateKey)
-    console.log("Done .. ");
-
     const exported_privateAsString = ab2str(exported_private);
     const exported_privateAsBase64 = window.btoa(exported_privateAsString);
     window.myPrivateKeyString = exported_privateAsBase64;
@@ -131,7 +132,6 @@ const init = async () => {
   }
   console.log("Public key is: " + window.myPublicKeyString);
   console.log("Private key is: " + window.myPrivateKeyString);
-
 
   await initial_load();
 };
@@ -208,9 +208,9 @@ seedBtn.addEventListener('click', async () => {
             true,
             ["encrypt", "decrypt"]
         ).then( (key) => {
-            window.thesecret = key;    
-            // Store secret in local storage
-            // Encrypt secret for own pubkey
+            // Wrap key for own pubkey
+            // const wrapped = crypto.subtle.wrapKey('raw', key, window.myKeyPair.publicKey, { name: "RSA-OAEP" } );
+
             // Call actor.seed
             actor.seed(window.myPublicKeyString,"c1").then( () => {
                 seedResponseEl.innerText += "\nDone.";
