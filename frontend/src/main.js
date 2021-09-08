@@ -336,7 +336,7 @@ function decrypt(data, decryption_key) {
   // The initialization vector must also be provided.
   var init_vector = CryptoJS.enc.Base64.parse("0000000000000000000000");
   // The encryption key is hashed.
-  var hash = CryptoJS.SHA256(encryption_key);
+  var hash = CryptoJS.SHA256(decryption_key);
   // THe data is decrypted using AES.
   var decrypted_data = CryptoJS.AES.decrypt(data, hash, {iv: init_vector});
   // The return value must be converted to plain UTF-8.
