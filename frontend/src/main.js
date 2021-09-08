@@ -206,12 +206,14 @@ seedBtn.addEventListener('click', async () => {
   })
 });
 
+
+
 function encrypt(data, encryption_key) {
-  return data;
+  return "1"+data;
 }
 
 function decrypt(data, decryption_key) {
-  return data;
+  return data.substring(1);
 }
 
 function call_insert(identity, key, user, pw) {
@@ -229,10 +231,10 @@ function call_insert(identity, key, user, pw) {
         canisterId: vaultCanister,
     });
 	
-    const encrypted_key = encrypt(key, "");
-    const encrypted_value = encrypt(value, "");
+    const encrypted_key = encrypt(key, "verysecret");
+    const encrypted_value = encrypt(value, "verysecret");
     actor.insert(encrypted_key, encrypted_value).then(async () => {
-        await fetch_single_row(encrypted_key);
+        await fetch_single_row(key);
     });
 }
 
@@ -286,9 +288,9 @@ const fetch_single_row = async (key) => {
         canisterId: vaultCanister,
     });
 
-    actor.lookup(key).then((value) => {
+    actor.lookup(encrypt(key, "verysecret")).then((value) => {
         if (value.length >= 1) {
-            value = JSON.parse(value[0]);
+            value = JSON.parse(decrypt(value[0], "verysecret"));
             add_row(key, value.username, value.password, false);
         } else {
             remove_row(key);
@@ -395,7 +397,7 @@ function start_delete_row(event) {
         canisterId: vaultCanister,
     });
 
-    actor.delete(key).then(result => {
+    actor.delete(encrypt(key, "verysecret")).then(result => {
         fetch_single_row(key);
     });
 }
@@ -422,8 +424,10 @@ function remove_row(key) {
 
 function load_rows(rows) {
     for (const row of rows) {
-        let key = row.key;
-        let value = JSON.parse(row.value);
+        let key = decrypt(row.key, "verysecret");
+        console.log("encrypted "+row.value);
+        console.log("decrypted "+decrypt(row.value, "verysecret"));
+        let value = JSON.parse(decrypt(row.value, "verysecret"));
         let username = value.username;
         let pw = value.password;
         add_row(key, username, pw, false);
