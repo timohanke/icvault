@@ -21,7 +21,7 @@ actor {
       value: Value;
   };
 
-  // New type for an array of KV entries associated with a specific principal ID.
+  // New type for an array of KV entries associated with a specific principal ID for easy access in js frontend.
   type PrincipaledKVArray = {
       principal : Principal;
       kvstore: [KVEntry];
