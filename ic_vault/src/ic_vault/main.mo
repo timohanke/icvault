@@ -43,7 +43,7 @@ actor {
       };
   };
 
-  public shared(msg) func get_kv_array() : async [(Key, Value)] {
+  public shared(msg) func get_kvstore() : async [(Key, Value)] {
       var option = vault_map.get(msg.caller);
       switch (option) {
           case (?map) {
