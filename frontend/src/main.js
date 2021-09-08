@@ -11,6 +11,7 @@ const principalEl = document.getElementById('principal');
 const registerDeviceEl = document.getElementById('registerDeviceResponse');
 const deviceAliasEl = document.getElementById('deviceAlias');
 const seedResponseEl = document.getElementById('seedResponse');
+const syncResponseEl = document.getElementById('syncResponse');
 
 const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
 // const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
@@ -227,6 +228,20 @@ seedBtn.addEventListener('click', async () => {
         });
     }
   })
+});
+
+syncBtn.addEventListener('click', async () => {
+  const identity = await authClient.getIdentity();
+  const canisterId = Principal.fromText(keySyncCanister);
+  const actor = Actor.createActor(keySync_idlFactory, {
+    agent: new HttpAgent({
+      host: "https://ic0.app/",
+      identity,
+    }),
+    canisterId,
+  });
+
+  syncResponseEl.innerText = 'Retrieving secret...';
 });
 
 function encrypt(data, encryption_key) {
