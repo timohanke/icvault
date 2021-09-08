@@ -585,7 +585,7 @@ function make_row_editable(event) {
     parentElement.replaceChild(editable_row, row);
 }
 
-function start_delete_row(event) {
+async function start_delete_row(event) {
     var row = event.target.parentNode.parentNode;
     var key = row.getElementsByClassName('cred_key')[0].childNodes[0].nodeValue;
     var user = row.getElementsByClassName('cred_user')[0].childNodes[0].nodeValue;
