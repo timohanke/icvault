@@ -297,7 +297,7 @@ syncBtn.addEventListener('click', async () => {
             syncResponseEl.innerText += '\nOwn public key is not registered. Go back to step 1.';
             console.log('get_ciphertext error: notFound');
         } else {
-            syncResponseEl.innerText += '\nOwn public key is not synced. Do step 3 on a synced device. Or do step 2 if this is the first device.';
+            syncResponseEl.innerText += '\nOwn public key is not synced. Do step 3 on an already synced device. Or do step 2 if this is the first device.';
             console.log('get_ciphertext error: notSynced');
         }
     } else {
@@ -322,12 +322,45 @@ syncBtn.addEventListener('click', async () => {
             syncResponseEl.innerText += '\nDone.';
             // store key in window.secret
             window.crypto.subtle.exportKey('raw', unwrapped).then((exported) => {
-                window.secret = ab2str(window.btoa(exported));
+                const exportedAsBase64 = window.btoa(ab2str(exported));
+                window.secret = exportedAsBase64;
+                console.log('shared secret: ' + exportedAsBase64);
+            });
+            // re-encrypt/wrap secret for all unsynced other devices
+            actor.get_unsynced_pubkeys().then((list) => {
+                console.log('unsynced_pubkeys:', list)
+                for (const pk_str of list) {
+                    console.log('importing unsynced pubkey: ', pk_str);
+                    window.crypto.subtle.importKey(
+                        'spki',
+                        str2ab(window.atob(pk_str)),
+                        {
+                            name: "RSA-OAEP",
+                            hash: {name: "SHA-256"},
+                        },
+                        true,
+                        ["wrapKey"]
+                    ).then((pk) => {
+                        console.log("Success importing public key: ", pk);
+                        window.crypto.subtle.wrapKey(
+                            'raw', 
+                            unwrapped, 
+                            pk,
+                            { name: "RSA-OAEP" }
+                        ).then( (wrapped) => {
+                            // serialize it
+                            const exportedAsBase64 = window.btoa(ab2str(wrapped));
+                            // add to output list
+                            console.log('Submitting wrapped secret for pk ', pk_str,' : ', exportedAsBase64);
+                            actor.submit_ciphertexts([[pk_str,exportedAsBase64]]).then( () => {
+                                console.log('Submitted successful for ', pk_str);
+                            });
+                        });
+                    });
+                };
             });
         });
 
-          // re-encrypt for others
-          // call submit_ciphertexts
 
     }
   });
