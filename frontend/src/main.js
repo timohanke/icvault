@@ -119,14 +119,12 @@ const init = async () => {
       ["encrypt", "decrypt", "wrapKey", "unwrapKey"]
     );
     const exported = await window.crypto.subtle.exportKey('spki', keypair.publicKey);
-    const exportedAsString = ab2str(exported);
-    const exportedAsBase64 = window.btoa(exportedAsString);
+    const exportedAsBase64 = window.btoa(ab2str(exported));
     window.myPublicKeyString = exportedAsBase64;
 
     console.log("Exporting private key .. ");
     const exported_private = await window.crypto.subtle.exportKey('pkcs8', keypair.privateKey)
-    const exported_privateAsString = ab2str(exported_private);
-    const exported_privateAsBase64 = window.btoa(exported_privateAsString);
+    const exported_privateAsBase64 = window.btoa(ab2str(exported_private));
     window.myPrivateKeyString = exported_privateAsBase64;
 
     local_store.setItem("PublicKey", window.myPublicKeyString);
@@ -266,8 +264,7 @@ seedBtn.addEventListener('click', async () => {
                 { name: "RSA-OAEP" }
             ).then( (wrapped) => {
                 // serialize it
-                const exportedAsString = ab2str(wrapped);
-                const exportedAsBase64 = window.btoa(exportedAsString);
+                const exportedAsBase64 = window.btoa(ab2str(wrapped));
                 console.log("Submitting wrapped secret: " + exportedAsBase64);
                 // Call actor.seed
                 actor.seed(window.myPublicKeyString, exportedAsBase64).then( () => {
