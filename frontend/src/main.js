@@ -12,11 +12,12 @@ const registerDeviceEl = document.getElementById('registerDeviceResponse');
 const deviceAliasEl = document.getElementById('deviceAlias');
 
 const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
-const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
+// const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
+const vaultCanister = "un4fu-tqaaa-aaaab-qadjq-cai"; // from Motoko playground
 
 let authClient;
 
-export const keySync_idlFactory = ({ IDL }) => {
+const keySync_idlFactory = ({ IDL }) => {
   const PublicKey = IDL.Text;
   const Ciphertext = IDL.Text;
   const GetCiphertextError = IDL.Variant({
@@ -158,7 +159,7 @@ function call_insert(identity, key, user, pw) {
 	*/ 
     });
 
-    const VAULT_CANISTER_ID = Principal.fromText('un4fu-tqaaa-aaaab-qadjq-cai');
+    const VAULT_CANISTER_ID = Principal.fromText(vaultCanister);
 
     const value = JSON.stringify({username: user, password: pw});
     const actor = Actor.createActor(idlFactory, {
