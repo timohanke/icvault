@@ -66,6 +66,15 @@ function ab2str(buf) {
   return String.fromCharCode.apply(null, new Uint8Array(buf));
 }
 
+function str2ab(str) {
+  var buf = new ArrayBuffer(str.length);
+  var bufView = new Uint8Array(buf);
+  for (var i=0, strLen=str.length; i<strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return buf;
+}
+
 function change_app_view(state) {
     for (const view of ['loading', 'table']) {
         var e = document.getElementById('app_view_' + view);
@@ -134,6 +143,38 @@ const init = async () => {
   console.log("Public key is: " + window.myPublicKeyString);
   console.log("Private key is: " + window.myPrivateKeyString);
 
+  window.myPublicKey = await window.crypto.subtle.importKey(
+      'spki',
+      str2ab(window.atob(window.myPublicKeyString)),
+      {
+          name: "RSA-OAEP",
+          hash: {name: "SHA-256"},
+      },
+      true,
+      ["encrypt"]
+  ).then(function(key) {
+      console.log("Success importing public key: " + key);
+      window.myPublicKey = key;
+  }).catch(function(err) {
+      console.error("Failed to import public key: " + err);
+  });
+
+  window.myPrivateKey = await window.crypto.subtle.importKey(
+      'pkcs8',
+      str2ab(window.atob(window.myPrivateKeyString)),
+      {
+          name: "RSA-OAEP",
+          hash: {name: "SHA-256"},
+      },
+      true,
+      ["decrypt"]
+  ).then(function(key) {
+      console.log("Success importing private key: " + key);
+      window.myPrivateKey = key;
+  }).catch(function(err) {
+      console.error("Failed to import private key: " + err);
+  });
+    
   await initial_load();
 };
 
