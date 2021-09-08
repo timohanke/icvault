@@ -15,16 +15,13 @@ TODO
 # How to use it
 
 The IC Vault front page defines the basic workflow. The following steps have to be performed during first use:
-* The user needs to sign into the IC 
+* The user needs to sign into the IC. 
 * Next, the user registers a device. (More devices can be registered as needed.) 
-* On first use a a secret key is seeded 
-* This key is retrieved using the public key of the Internet Identity 
-* Next, secrets can inserted, updated and deleted
+* On first use a secret key is seeded, which is further on utilized for storing sensitive data in the kv_store canister.
+* This secret key can be retrieved using the public key of the Internet Identity 
+* Next, the IC Vault can be used to inserted, updated and delete sensitive data.
 
 On consecutive accesses to the IC Vault the user needs to sign into the IC and when using a registered device the sensitive data can be seamlessly accessed.  
-
-
-TODO 
 
 # Documentation
 
