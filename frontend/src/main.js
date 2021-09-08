@@ -11,6 +11,7 @@ const principalEl = document.getElementById('principal');
 const registerDeviceEl = document.getElementById('registerDeviceResponse');
 const deviceAliasEl = document.getElementById('deviceAlias');
 const seedResponseEl = document.getElementById('seedResponse');
+const syncResponseEl = document.getElementById('syncResponse');
 
 const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
 // const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
@@ -95,29 +96,43 @@ const init = async () => {
   };
 
   let local_store = window.localStorage;
-    if (true){//!local_store.getItem("myKeyPair")) {
+  if (!local_store.getItem("PublicKey") || !local_store.getItem("PrivateKey")) {
 
     console.log("Local store does not exists, generating keys");
-    window.myKeyPair = await crypto.subtle.generateKey(
-        {
-            name: "ECDSA",
-            namedCurve: "P-384"
-        },
-        true,
-        ["sign", "verify"]
+    let keypair = await crypto.subtle.generateKey(
+      {
+        name: "RSA-OAEP",
+        // Consider using a 4096-bit key for systems that require long-term security
+        modulusLength: 2048,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: "SHA-256",
+      },
+      true,
+      ["encrypt", "decrypt", "wrapKey", "unwrapKey"]
     );
-    local_store.setItem("myKeyPair", window.myKeyPair);
+    const exported = await window.crypto.subtle.exportKey('spki', keypair.publicKey);
+    const exportedAsString = ab2str(exported);
+    const exportedAsBase64 = window.btoa(exportedAsString);
+    window.myPublicKeyString = exportedAsBase64;
+
+    console.log("Exporting private key .. ");
+    const exported_private = await window.crypto.subtle.exportKey('pkcs8', keypair.privateKey)
+    const exported_privateAsString = ab2str(exported_private);
+    const exported_privateAsBase64 = window.btoa(exported_privateAsString);
+    window.myPrivateKeyString = exported_privateAsBase64;
+
+    local_store.setItem("PublicKey", window.myPublicKeyString);
+    local_store.setItem("PrivateKey", window.myPrivateKeyString);
 
   } else {
 
     console.log("Loading keys from local store");
-    window.myKeyPair = local_store.getItem("myKeyPair");
-  }
+    window.myPublicKeyString = local_store.getItem("PublicKey");
+    window.myPrivateKeyString = local_store.getItem("PrivateKey");
 
-  const exported = await window.crypto.subtle.exportKey('spki', window.myKeyPair.publicKey);
-  const exportedAsString = ab2str(exported);
-  const exportedAsBase64 = window.btoa(exportedAsString);
-  window.myPublicKeyString = exportedAsBase64;
+  }
+  console.log("Public key is: " + window.myPublicKeyString);
+  console.log("Private key is: " + window.myPrivateKeyString);
 
   await initial_load();
 };
@@ -194,19 +209,49 @@ seedBtn.addEventListener('click', async () => {
             true,
             ["encrypt", "decrypt"]
         ).then( (key) => {
-            window.thesecret = key;    
-            // Store secret in local storage
-            // Encrypt secret for own pubkey
-            // Call actor.seed
-            actor.seed(window.myPublicKeyString,"c1").then( () => {
-                seedResponseEl.innerText += "\nDone.";
+            // Wrap key for own pubkey
+            window.crypto.subtle.wrapKey(
+                'raw', 
+                key, 
+                window.myKeyPair.publicKey,  // TODO: this variable does not currently exist 
+                { name: "RSA-OAEP" } 
+            ).then( (wrapped) => {
+                // serialize it
+                const exportedAsString = ab2str(wrapped);
+                const exportedAsBase64 = window.btoa(exportedAsString);
+                console.log("Submitting wrapped secret: " + exportedAsBase64);
+                // Call actor.seed
+                actor.seed(window.myPublicKeyString, exportedAsBase64).then( () => {
+                    seedResponseEl.innerText += "\nDone.";
+                });
             });
         });
     }
   })
 });
 
+syncBtn.addEventListener('click', async () => {
+  const identity = await authClient.getIdentity();
+  const canisterId = Principal.fromText(keySyncCanister);
+  const actor = Actor.createActor(keySync_idlFactory, {
+    agent: new HttpAgent({
+      host: "https://ic0.app/",
+      identity,
+    }),
+    canisterId,
+  });
 
+  syncResponseEl.innerText = 'Retrieving secret for my public key...';
+  // call get_ciphertext
+  actor.get_ciphertext(window.myPublicKeyString).then( (result) => {
+    console.log('get_ciphertext : ',result);
+  });
+  // unwrap key
+  // store key in window.thesecret
+
+  // re-encrypt for others
+  // call submit_ciphertexts
+});
 
 function encrypt(data, encryption_key) {
   return "1"+data;
