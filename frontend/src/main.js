@@ -6,6 +6,7 @@ const signInBtn = document.getElementById('signinBtn');
 const signOutBtn = document.getElementById('signoutBtn');
 const whoamiBtn = document.getElementById('whoamiBtn');
 const listDevicesBtn = document.getElementById('listDevicesBtn');
+const listDevicesEl = document.getElementById('listDevicesResponse');
 const hostUrlEl = document.getElementById('hostUrl');
 const whoAmIResponseEl = document.getElementById('whoamiResponse');
 const principalEl = document.getElementById('principal');
@@ -175,12 +176,8 @@ const init = async () => {
   console.log("Public key is: " + window.myPublicKeyString);
   console.log("Private key is: " + window.myPrivateKeyString);
 
-  try {
-    if (local_store.getItem("DeviceAlias")) {
-        document.getElementById('deviceAliasLocalStore').innerHTML = local_store.getItem("DeviceAlias");
-    }
-  }  catch (error) {
-      console.error("Error: " + error);
+  if (local_store.getItem("DeviceAlias")) {
+    document.getElementById('deviceAliasLocalStore').innerHTML = local_store.getItem("DeviceAlias");
   }
 
   await initial_load();
@@ -199,12 +196,12 @@ listDevicesBtn.addEventListener('click', async() => {
     }),
     canisterId,
   });
-
-  DeviceListResponse.innerText = 'Loading...';
+    
+  listDevicesEl.innerText = 'Loading...';
 
   // Similar to the sample project on dfx new:
   actor.get_devices().then(devices => {
-    whoAmIResponseEl.innerText = devices.toText();
+    load_devices(devices);
   });
 });
 
@@ -592,6 +589,49 @@ function remove_row(key) {
     var old_row = document.getElementById('datarow-' + key);
     if (old_row) {
         old_row.remove();
+    }
+}
+
+async function remove_device(event) {
+    var elem = event.target;
+    var d = elem.innerHTML;
+    console.log("Removing device: " + d);
+
+    const identity = await authClient.getIdentity();
+    const canisterId = Principal.fromText(keySyncCanister);
+
+    const actor = Actor.createActor(keySync_idlFactory, {
+        agent: new HttpAgent({
+            host: "https://ic0.app/",
+            identity,
+        }),
+        canisterId,
+    });
+    
+    elem.innerText += ' ... deleting';
+
+    actor.remove_device(d).then(devices => {
+        console.log('Device ' + d + ' successfully deleted');
+        elem.innerText += ' ... deleted';
+    });
+}
+
+function load_devices(rows) {
+    listDevicesEl.innerText = '';
+    for (const row of rows) {
+        try {
+            console.log(row);
+            var alias = row[0];
+
+            var device_entry = document.createElement('div');
+            device_entry.addEventListener('click', remove_device, false);
+            device_entry.innerHTML = alias;
+            
+            listDevicesEl.appendChild(device_entry);
+
+        } catch (error) {
+            console.error("Failed to read row: " + row + " - with error: " + error);
+        }
     }
 }
 
