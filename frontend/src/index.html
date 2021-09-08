@@ -42,6 +42,10 @@
         }
         .overlay_spinner {
         }
+        .small_spinner {
+            width: 1em;
+            height: 1em;
+        }
     </style>
   <body>
 
@@ -56,6 +60,11 @@
 
       Current principal:
       <div id="principal"></div>
+      
+      <br />
+      <br />
+
+      <button onclick="window.localStorage.clear()">Clear local store</button>
     </div>
 
     <div>
@@ -71,6 +80,10 @@
         <h3>Step 2. Seed</h3>
         <button id="seedBtn">Seed</button>
         <div id="seedResponse"></div>
+        <br />
+        <h3>Step 3. Sync</h3>
+        <button id="syncBtn">Sync</button>
+        <div id="syncResponse"></div>
         <br />
         <h3>Debug</h3>
         <div>
@@ -91,16 +104,13 @@
             <div class="cred_table" id="cred_table">
                 <div class="cred_row" id="add_entry_row">
                     <div class="cred_key">
-                        <label>Application: </label>
-                        <input type="text" class="key_input" />
+                        <input type="text" class="key_input" placeholder="application"/>
                     </div>
                     <div class="cred_user">
-                        <label>Username: </label>
-                        <input type="text" class="user_input" />
+                        <input type="text" class="user_input" placeholder="user name"/>
                     </div>
                     <div class="cred_pw">
-                        <label>Password: </label>
-                        <input type="text" class="pw_input" />
+                        <input type="text" class="pw_input" placeholder="password" />
                     </div>
                     <div class="cred_control">
                         <button id="create_new_button">add</button>

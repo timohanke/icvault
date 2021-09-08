@@ -12,6 +12,11 @@ const whoAmIResponseEl = document.getElementById('whoamiResponse');
 const principalEl = document.getElementById('principal');
 const registerDeviceEl = document.getElementById('registerDeviceResponse');
 const deviceAliasEl = document.getElementById('deviceAlias');
+<<<<<<< HEAD
+=======
+const seedResponseEl = document.getElementById('seedResponse');
+const syncResponseEl = document.getElementById('syncResponse');
+>>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
 
 const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
 // const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
@@ -85,6 +90,7 @@ const init = async () => {
   };
 
   let local_store = window.localStorage;
+<<<<<<< HEAD
   if (!local_store.getItem("test")) {
     console.log("Local store does not exists, generating keys");
     local_store.setItem("test", "bla");
@@ -93,28 +99,54 @@ const init = async () => {
     console.log("Loaded: " + local_store.getItem("test"));
   }
   if (!local_store.getItem("myKeyPair")) {
+=======
+  if (!local_store.getItem("PublicKey") || !local_store.getItem("PrivateKey")) {
+>>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
 
     console.log("Local store does not exists, generating keys");
-    window.myKeyPair = await crypto.subtle.generateKey(
-        {
-            name: "ECDSA",
-            namedCurve: "P-384"
-        },
-        true,
-        ["sign", "verify"]
+    let keypair = await crypto.subtle.generateKey(
+      {
+        name: "RSA-OAEP",
+        // Consider using a 4096-bit key for systems that require long-term security
+        modulusLength: 2048,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: "SHA-256",
+      },
+      true,
+      ["encrypt", "decrypt", "wrapKey", "unwrapKey"]
     );
-    local_store.setItem("myKeyPair", window.myKeyPair);
+    const exported = await window.crypto.subtle.exportKey('spki', keypair.publicKey);
+    const exportedAsString = ab2str(exported);
+    const exportedAsBase64 = window.btoa(exportedAsString);
+    window.myPublicKeyString = exportedAsBase64;
+
+    console.log("Exporting private key .. ");
+    const exported_private = await window.crypto.subtle.exportKey('pkcs8', keypair.privateKey)
+    const exported_privateAsString = ab2str(exported_private);
+    const exported_privateAsBase64 = window.btoa(exported_privateAsString);
+    window.myPrivateKeyString = exported_privateAsBase64;
+
+    local_store.setItem("PublicKey", window.myPublicKeyString);
+    local_store.setItem("PrivateKey", window.myPrivateKeyString);
 
   } else {
 
     console.log("Loading keys from local store");
-    window.myKeyPair = local_store.getItem("myKeyPair");
-  }
+    window.myPublicKeyString = local_store.getItem("PublicKey");
+    window.myPrivateKeyString = local_store.getItem("PrivateKey");
 
+<<<<<<< HEAD
   const exported = await window.crypto.subtle.exportKey('spki', window.myKeyPair.publicKey);
   const exportedAsString = ab2str(exported);
   const exportedAsBase64 = window.btoa(exportedAsString);
   window.myPublicKeyString = exportedAsBase64;
+=======
+  }
+  console.log("Public key is: " + window.myPublicKeyString);
+  console.log("Private key is: " + window.myPrivateKeyString);
+
+  await initial_load();
+>>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
 };
 
 init();
@@ -160,10 +192,21 @@ registerDeviceBtn.addEventListener('click', async () => {
     canisterId,
   });
 
+<<<<<<< HEAD
   registerDeviceEl.innerText = 'Loading...';
 
   actor.register_device(deviceAliasEl.value, window.myPublicKeyString).then(result => {
     registerDeviceEl.innerText = result;
+=======
+  registerDeviceEl.innerText = 'Registering public key for device ' + deviceAliasEl.value + ' : ' + window.myPublicKeyString;
+
+  actor.register_device(deviceAliasEl.value, window.myPublicKeyString).then(result => {
+    if (result) {
+        registerDeviceEl.innerText += "\nDone.";
+    } else {
+        registerDeviceEl.innerText += "\nDevice alias already registered. Choose a unique alias. To overwrite an existing device call remove_device first (currently only through Candid UI).";
+    }
+>>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
   });
 });
 
@@ -176,10 +219,78 @@ function decrypt(data, decryption_key) {
   return data;
 }
 
+<<<<<<< HEAD
 function sha256(message) {
   const shaObj = new jsSHA("SHA-256", "TEXT", { encoding: "UTF8" });
   shaObj.update(message);
   return shaObj.getHash("HEX");
+}
+=======
+  actor.isSeeded().then( result => {
+    if (result) {
+        seedResponseEl.innerText += '\nAlready seeded. Now have to sync the secret.';
+    } else {
+        seedResponseEl.innerText += '\nNot seeded. Seeding now...';
+        // Generate secret
+        window.crypto.subtle.generateKey(
+            {
+                name: "AES-GCM",
+                length: 256
+            },
+            true,
+            ["encrypt", "decrypt"]
+        ).then( (key) => {
+            // Wrap key for own pubkey
+            window.crypto.subtle.wrapKey(
+                'raw', 
+                key, 
+                window.myKeyPair.publicKey,  // TODO: this variable does not currently exist 
+                { name: "RSA-OAEP" } 
+            ).then( (wrapped) => {
+                // serialize it
+                const exportedAsString = ab2str(wrapped);
+                const exportedAsBase64 = window.btoa(exportedAsString);
+                console.log("Submitting wrapped secret: " + exportedAsBase64);
+                // Call actor.seed
+                actor.seed(window.myPublicKeyString, exportedAsBase64).then( () => {
+                    seedResponseEl.innerText += "\nDone.";
+                });
+            });
+        });
+    }
+  })
+});
+>>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
+
+syncBtn.addEventListener('click', async () => {
+  const identity = await authClient.getIdentity();
+  const canisterId = Principal.fromText(keySyncCanister);
+  const actor = Actor.createActor(keySync_idlFactory, {
+    agent: new HttpAgent({
+      host: "https://ic0.app/",
+      identity,
+    }),
+    canisterId,
+  });
+
+  syncResponseEl.innerText = 'Retrieving secret for my public key...';
+  // call get_ciphertext
+  actor.get_ciphertext(window.myPublicKeyString).then( (result) => {
+    console.log('get_ciphertext : ',result);
+  });
+  // unwrap key
+  // store key in window.thesecret
+
+  // re-encrypt for others
+  // call submit_ciphertexts
+});
+
+function encrypt(data, encryption_key) {
+  return "1"+data;
+}
+
+function decrypt(data, decryption_key) {
+  return data.substring(1);
 }
 
 function call_insert(identity, key, user, pw) {
@@ -196,11 +307,19 @@ function call_insert(identity, key, user, pw) {
         ),
         canisterId: vaultCanister,
     });
+<<<<<<< HEAD
 
     const encrypted_key = encrypt(key, "");
     const encrypted_value = encrypt(value, "");
     actor.insert(encrypted_key, encrypted_value).then(() => {
         alert('insert complete for key: ' + encrypted_key);
+=======
+	
+    const encrypted_key = encrypt(key, "verysecret");
+    const encrypted_value = encrypt(value, "verysecret");
+    actor.insert(encrypted_key, encrypted_value).then(async () => {
+        await fetch_single_row(key);
+>>>>>>> 902dc2c6956b3d4ce0bf08334a23b4d6f00009a6
     });
 }
 
@@ -230,10 +349,38 @@ function make_edit_cell(className) {
     var edit_button = document.createElement('input');
     edit_button.setAttribute("type", "button");
     edit_button.setAttribute("value", "edit");
-    edit_button.addEventListener('click',make_row_editable,false);
-
+    edit_button.addEventListener('click', make_row_editable, false);
     cell.appendChild(edit_button);
+
+    var delete_button = document.createElement('input');
+    delete_button.setAttribute("type", "button");
+    delete_button.setAttribute("value", "delete");
+    delete_button.addEventListener('click', start_delete_row, false);
+    cell.appendChild(delete_button);
+
     return cell;
+}
+
+const fetch_single_row = async (key) => {
+    const identity = await authClient.getIdentity();
+    const actor = Actor.createActor(vaultIdlFactory, {
+        agent: new HttpAgent(
+            {
+                host: 'https://ic0.app/',
+                identity,
+            }
+        ),
+        canisterId: vaultCanister,
+    });
+
+    actor.lookup(encrypt(key, "verysecret")).then((value) => {
+        if (value.length >= 1) {
+            value = JSON.parse(decrypt(value[0], "verysecret"));
+            add_row(key, value.username, value.password, false);
+        } else {
+            remove_row(key);
+        }
+    });
 }
 
 function make_text_cell(className, content) {
@@ -243,14 +390,28 @@ function make_text_cell(className, content) {
     return cell;
 }
 
-function make_row(key, user, pw) {
+function make_progress_cell(className) {
+    var cell = document.createElement('div');
+    cell.className = className;
+    var img = document.createElement('img');
+    img.className = 'small_spinner';
+    img.src = 'spinner.gif';
+    cell.appendChild(img);
+    return cell;
+}
+
+function make_row(key, user, pw, in_progress) {
     var row = document.createElement('div');
     row.className = "cred_row";
     row.id = "datarow-" + key;
     row.appendChild(make_text_cell('cred_key', key));
     row.appendChild(make_text_cell('cred_user', user));
     row.appendChild(make_text_cell('cred_pw', pw));
-    row.appendChild(make_edit_cell('cred_control'));
+    if (in_progress) {
+        row.appendChild(make_progress_cell('cred_control'));
+    } else {
+        row.appendChild(make_edit_cell('cred_control'));
+    }
     return row;
 }
 
@@ -262,7 +423,7 @@ function save_row(event) {
     var user = row.getElementsByClassName('cred_user')[0].childNodes[0].value;
     var pw = row.getElementsByClassName('cred_pw')[0].childNodes[0].value;
 
-    var new_row = make_row(key,user,pw);
+    var new_row = make_row(key, user, pw, true);
 
     const identity = authClient.getIdentity();
 
@@ -304,10 +465,32 @@ function make_row_editable(event) {
     parentElement.replaceChild(editable_row, row);
 }
 
-function add_row(key, user, pw) {
+function start_delete_row(event) {
+    var row = event.target.parentNode.parentNode;
+    var key = row.getElementsByClassName('cred_key')[0].childNodes[0].nodeValue;
+    var user = row.getElementsByClassName('cred_user')[0].childNodes[0].nodeValue;
+    var pw = row.getElementsByClassName('cred_pw')[0].childNodes[0].nodeValue;
+
+    add_row(key, user, pw, true);
+
+    const actor = Actor.createActor(vaultIdlFactory, {
+        agent: new HttpAgent(
+            {
+                host: 'https://ic0.app/',
+            }
+        ),
+        canisterId: vaultCanister,
+    });
+
+    actor.delete(encrypt(key, "verysecret")).then(result => {
+        fetch_single_row(key);
+    });
+}
+
+function add_row(key, user, pw, in_progress) {
     var tab = document.getElementById('cred_table');
 
-    var row = make_row(key, user, pw);
+    var row = make_row(key, user, pw, in_progress);
     var old_row = document.getElementById('datarow-' + key);
     if (old_row) {
         tab.replaceChild(row, old_row);
@@ -316,13 +499,23 @@ function add_row(key, user, pw) {
     }
 }
 
+function remove_row(key) {
+    var tab = document.getElementById('cred_table');
+    var old_row = document.getElementById('datarow-' + key);
+    if (old_row) {
+        old_row.remove();
+    }
+}
+
 function load_rows(rows) {
     for (const row of rows) {
-        let key = row.key;
-        let value = JSON.parse(row.value);
+        let key = decrypt(row.key, "verysecret");
+        console.log("encrypted "+row.value);
+        console.log("decrypted "+decrypt(row.value, "verysecret"));
+        let value = JSON.parse(decrypt(row.value, "verysecret"));
         let username = value.username;
         let pw = value.password;
-        add_row(key, username, pw);
+        add_row(key, username, pw, false);
     }
 }
 
@@ -343,9 +536,9 @@ create_new_button.addEventListener('click', async () => {
     //const identity = Principal.fromText('2vxsx-fae');
 
     if (user.length!=0 && pw.length!=0){
-    	call_insert(identity, key, user, pw);
-    	add_row(key, user, pw);
+    	add_row(key, user, pw, true);
     	clear_input();
+    	call_insert(identity, key, user, pw);
     }
 })
 
