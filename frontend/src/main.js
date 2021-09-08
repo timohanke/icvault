@@ -145,7 +145,11 @@ registerDeviceBtn.addEventListener('click', async () => {
   registerDeviceEl.innerText = 'Loading...';
 
   actor.register_device(deviceAliasEl.value, window.myPublicKeyString).then(result => {
-    registerDeviceEl.innerText = result;
+    if (result) {
+        registerDeviceEl.innerText = "New device successfully registered.";
+    } else {
+        registerDeviceEl.innerText = "Device alias already registered. Choose a unique alias. To overwrite an existing device call remove_device first.";
+    }
   });
 });
 
