@@ -1,30 +1,35 @@
 # IC Vault
-In order to support Dapps handling sensitive data we need seamless end-to-end encryption to ensure that the IC does not get to see any cleartext. As example IC Vault enables the management of key value pairs linked to a location or application. IC Vault focuses on the transparent access of managed data by all registered devices of a specific user. Thereby, it is assumed that the devices is added to the user’s Internet Identity. We leverage this fact and thereby demonstrate the power of Internet Identity. By “seamless” we mean that no additional communication between the devices is required, i.e. no scanning of QR codes by one device on another, etc. Each device only communicates directly with the IC. 
+In order to support Dapps handling sensitive data, we need seamless end-to-end encryption to ensure that the IC does not get to see any confidential or private data.
+
+The `IC Vault` enables the management of key-value pairs linked to a location or application. The `IC Vault` focuses on the transparent access of managed data by all registered devices of a specific user. It is assumed that the devices are added to the user’s Internet Identity. We leverage this fact and thereby demonstrate the power of Internet Identity. By "seamless" we mean that no additional communication between the devices is required, i.e., no scanning of QR codes by one device on another, etc. Each device only communicates directly with the IC. 
 
 ![IC Vault](resources/overview.png)
 
+The figure above illustrates the main steps. After logging in, the user can get the symmetric key for a specific application from the `Key Sync Canister`. This symmetric key is encrypted with the user's public key. After decrypting the symmetric key with the user's private key, the encrypted value for a certain key is requested from the `KV Store Canister`. The value can then be obtained by using the symmetric key to decrypt the value.
+Note that the key itself is also encrypted using the same symmetric key so that the `KV Store Canister` does not learn the keys, either.
+
 # Deployment
 
-IC Vault is decomposed into the following components:
+`IC Vault` is decomposed into the following components:
 
-* UI is located in [frontend](/frontend)
-* Managment of devices is handeld by the Motoko [key_sync](/key_sync) canister 
-* Storage of sensitive data is handeld by the [kv_store](/kv_store) canister
+* The UI is located in [frontend](/frontend)
+* The managment of devices is handled by the Motoko `Key Sync Canister` in the folder [key_sync](/key_sync)
+* Storage of sensitive data is handled by the Motoko `KV Store Canister` in the folder [kv_store](/kv_store)
 * Assets of the frontend are provided by the kv_store_assets canister
 
-Each of the main folders ([frontend](/frontend), [key_sync](/key_sync) and [kv_store](/kv_store)) provides a Makefile to build and deploy the individiual components. 
+Each of the main folders ([frontend](/frontend), [key_sync](/key_sync) and [kv_store](/kv_store)) provides a `Makefile` to build and deploy the individiual components. 
 
 # How to use it
 
-The IC Vault front page defines the basic workflow. The following steps have to be performed during first use:
+The `IC Vault` front page defines the basic workflow. The following steps have to be performed during first use:
 * The user needs to sign into the IC. 
-* Next, the user registers a device. (More devices can be registered as needed.) This results in generating a public keypair. The secret key together with a nickname is stored in the local storage of the browser.  
-* A shared secret is seeded which is encrypted via the public key of the device and handed over to the key_sync canister. 
+* Next, the user registers a device (more devices can be registered as needed). As a result, a public-private key pair is generated. The private key together with a nickname is stored in the local storage of the browser.  
+* A shared secret is created, which is encrypted with the public key of the device and handed over to the key_sync canister. 
 
 Futher details can be found in the design document (see below).
 
-On consecutive accesses to the IC Vault the user needs to sign with II. When using a registered device the sensitive data can be seamlessly accessed and displayed.  
+On consecutive accesses to the `IC Vault`, the user needs to sign into the IC using his or her Internet Identity. When using a registered device, the sensitive data can be accessed and displayed seamlessly.
 
 # Documentation
 
-https://docs.google.com/document/d/1dUvzQBKNM9COXPXw-mWnmXQOhwSdrSA2QRuefnYCnaU/edit#heading=h.tfzfyr8zn3o2
+Additional documentation is provided in the [linked document](https://docs.google.com/document/d/1dUvzQBKNM9COXPXw-mWnmXQOhwSdrSA2QRuefnYCnaU/edit#heading=h.tfzfyr8zn3o2).
