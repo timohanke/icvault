@@ -2,6 +2,8 @@ import { Actor, HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { AuthClient } from '@dfinity/auth-client';
 
+import jsSHA from "jssha";
+
 const signInBtn = document.getElementById('signinBtn');
 const signOutBtn = document.getElementById('signoutBtn');
 const whoamiBtn = document.getElementById('whoamiBtn');
@@ -10,7 +12,6 @@ const whoAmIResponseEl = document.getElementById('whoamiResponse');
 const principalEl = document.getElementById('principal');
 const registerDeviceEl = document.getElementById('registerDeviceResponse');
 const deviceAliasEl = document.getElementById('deviceAlias');
-const seedResponseEl = document.getElementById('seedResponse');
 
 const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
 // const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
@@ -65,17 +66,6 @@ function ab2str(buf) {
   return String.fromCharCode.apply(null, new Uint8Array(buf));
 }
 
-function change_app_view(state) {
-    for (const view of ['loading', 'table']) {
-        var e = document.getElementById('app_view_' + view);
-        if (view == state) {
-            e.className = 'app_state_visible';
-        } else {
-            e.className = 'app_state_invisible';
-        }
-    }
-}
-
 const init = async () => {
   authClient = await AuthClient.create();
   principalEl.innerText = await authClient.getIdentity().getPrincipal();
@@ -95,7 +85,14 @@ const init = async () => {
   };
 
   let local_store = window.localStorage;
-    if (true){//!local_store.getItem("myKeyPair")) {
+  if (!local_store.getItem("test")) {
+    console.log("Local store does not exists, generating keys");
+    local_store.setItem("test", "bla");
+  } else {
+    console.log("Loading keys from local store");
+    console.log("Loaded: " + local_store.getItem("test"));
+  }
+  if (!local_store.getItem("myKeyPair")) {
 
     console.log("Local store does not exists, generating keys");
     window.myKeyPair = await crypto.subtle.generateKey(
@@ -118,8 +115,6 @@ const init = async () => {
   const exportedAsString = ab2str(exported);
   const exportedAsBase64 = window.btoa(exportedAsString);
   window.myPublicKeyString = exportedAsBase64;
-
-  await initial_load();
 };
 
 init();
@@ -147,8 +142,17 @@ whoamiBtn.addEventListener('click', async () => {
 
 registerDeviceBtn.addEventListener('click', async () => {
   const identity = await authClient.getIdentity();
+
+  // We either have an Agent with an anonymous identity (not authenticated),
+  // or already authenticated agent, or parsing the redirect from window.location.
+  const idlFactory = ({ IDL }) =>
+    IDL.Service({
+      register_device: IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], ['update']),
+    });
+
   const canisterId = Principal.fromText(keySyncCanister);
-  const actor = Actor.createActor(keySync_idlFactory, {
+
+  const actor = Actor.createActor(idlFactory, {
     agent: new HttpAgent({
       host: "https://ic0.app/",
       identity,
@@ -156,41 +160,27 @@ registerDeviceBtn.addEventListener('click', async () => {
     canisterId,
   });
 
-  registerDeviceEl.innerText = 'Registering device...';
+  registerDeviceEl.innerText = 'Loading...';
 
   actor.register_device(deviceAliasEl.value, window.myPublicKeyString).then(result => {
-    if (result) {
-        registerDeviceEl.innerText = "New device successfully registered.";
-    } else {
-        registerDeviceEl.innerText = "Device alias already registered. Choose a unique alias. To overwrite an existing device call remove_device first (currently only through Candid UI).";
-    }
+    registerDeviceEl.innerText = result;
   });
 });
 
-seedBtn.addEventListener('click', async () => {
-  const identity = await authClient.getIdentity();
-  const canisterId = Principal.fromText(keySyncCanister);
-  const actor = Actor.createActor(keySync_idlFactory, {
-    agent: new HttpAgent({
-      host: "https://ic0.app/",
-      identity,
-    }),
-    canisterId,
-  });
+function encrypt(data, encryption_key) {
+  const hash = sha256(data);
+  return data + hash;
+}
 
-  seedResponseEl.innerText = 'Checking if the secret is already defined ("seeded")...';
+function decrypt(data, decryption_key) {
+  return data;
+}
 
-  actor.isSeeded().then( result => {
-    if (result) {
-        seedResponseEl.innerText += '\nAlready seeded. Now have to sync the secret.';
-    } else {
-        seedResponseEl.innerText += '\nNot seeded. Seeding now...';
-        actor.seed("p1","c1").then( () => {
-            seedResponseEl.innerText += "\nDone.";
-        });
-    }
-  })
-});
+function sha256(message) {
+  const shaObj = new jsSHA("SHA-256", "TEXT", { encoding: "UTF8" });
+  shaObj.update(message);
+  return shaObj.getHash("HEX");
+}
 
 function call_insert(identity, key, user, pw) {
 
@@ -207,8 +197,10 @@ function call_insert(identity, key, user, pw) {
         canisterId: vaultCanister,
     });
 
-    actor.insert(key, value).then(() => {
-        alert('insert complete!');
+    const encrypted_key = encrypt(key, "");
+    const encrypted_value = encrypt(value, "");
+    actor.insert(encrypted_key, encrypted_value).then(() => {
+        alert('insert complete for key: ' + encrypted_key);
     });
 }
 
@@ -369,11 +361,9 @@ const initial_load = async () => {
 
     actor.get_kvstore().then(result => {
         load_rows(result);
-        change_app_view('table');
     });
 }
 
 refresh.addEventListener('click', async () => {
-    change_app_view('loading');
     initial_load();
 })
