@@ -82,16 +82,32 @@ const init = async () => {
     authClient.logout();
   };
 
-  // generate new keypair for this device/window
-  // TODO: check in local storage first
-  window.myKeyPair = await window.crypto.subtle.generateKey(
-    {
-      name: "ECDSA",
-      namedCurve: "P-384"
-    },
-    true,
-    ["sign", "verify"]
+  let local_store = window.localStorage;
+  if (!local_store.getItem("test")) {
+    console.log("Local store does not exists, generating keys");
+    local_store.setItem("test", "bla");
+  } else {
+    console.log("Loading keys from local store");
+    console.log("Loaded: " + local_store.getItem("test"));
+  }
+  if (!local_store.getItem("myKeyPair")) {
+
+    console.log("Local store does not exists, generating keys");
+    window.myKeyPair = await crypto.subtle.generateKey(
+        {
+            name: "ECDSA",
+            namedCurve: "P-384"
+        },
+        true,
+        ["sign", "verify"]
     );
+    local_store.setItem("myKeyPair", window.myKeyPair);
+
+  } else {
+
+    console.log("Loading keys from local store");
+    window.myKeyPair = local_store.getItem("myKeyPair");
+  }
 
   const exported = await window.crypto.subtle.exportKey('spki', window.myKeyPair.publicKey);
   const exportedAsString = ab2str(exported);
