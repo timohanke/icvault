@@ -7,12 +7,19 @@ import Principal "mo:base/Principal";
 
 actor {
 
+  // This actor provides KV store functionality, where users are only able to modify their own KV store
   type Key = Text;
-
   type Value = Text;
-
   type KVStore = Map.HashMap<Key, Value>;
-  
+  type KVEntry = {
+      key : Key;
+      value: Value;
+  };
+  type PrincipaledKVStore = {
+      principal : Principal;
+      kvstore: [KVEntry];
+  };
+
   var main_map = Map.HashMap<Principal, KVStore>(0, Principal.equal,  Principal.hash);
 
   public shared(msg) func insert(key: Key, value: Value): async () {
@@ -43,17 +50,21 @@ actor {
       };
   };
 
-  public shared(msg) func get_kvstore() : async [(Key, Value)] {
+  func to_KVEntry((key: Key, value: Value)) : KVEntry {
+      {key = key; value = value;}
+  };
+
+  public shared(msg) func get_kvstore() : async [KVEntry] {
       var option = main_map.get(msg.caller);
       switch (option) {
           case (?map) {
-            Iter.toArray(map.entries())
+            let x = Iter.toArray(map.entries());
+            Array.map(x,to_KVEntry)
           };
           case null {
               []
           };
       };
-    
   };
 
   public shared(msg) func delete(key : Key) : async () {
@@ -97,10 +108,13 @@ actor {
       }
   };
 
+  func to_PrincipaledKVStore((p : Principal, kvs : [(Key, Value)])) : PrincipaledKVStore {
+      {principal = p; kvstore = Array.map(kvs, to_KVEntry)}
+  };
    // for demo purposes only, 
    // to show that no real information is leaked because everything is encrypted 
    // returns [] if called before first upgrade
-   public query func leak() : async [(Principal, [(Key, Value)])] {
-     return entries;
+   public query func leak() : async [PrincipaledKVStore] {
+        Array.map(entries,to_PrincipaledKVStore)
    };
 };
