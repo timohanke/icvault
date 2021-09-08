@@ -63,10 +63,7 @@ whoamiBtn.addEventListener('click', async () => {
   });
 });
 
-function call_insert(key, user, pw) {
-    //const identity = await authClient.getIdentity();
-    const identity = Principal.fromText('2vxsx-fae');
-
+function call_insert(identity, key, user, pw) {
     const idlFactory = ({ IDL }) =>
         IDL.Service({
         insert: IDL.Func([
@@ -84,6 +81,7 @@ function call_insert(key, user, pw) {
         agent: new HttpAgent(
             {
                 host: 'https://ic0.app/',
+                identity,
             }
         ),
         canisterId,
@@ -201,13 +199,17 @@ function clear_input() {
     row.getElementsByClassName('pw_input')[0].value = '';
 }
 
-create_new_button.addEventListener('click', () => {
+create_new_button.addEventListener('click', async () => {
     var row = document.getElementById('add_entry_row');
     var key = row.getElementsByClassName('key_input')[0].value;
     var user = row.getElementsByClassName('user_input')[0].value;
     var pw = row.getElementsByClassName('pw_input')[0].value;
+
+    const identity = await authClient.getIdentity();
+    //const identity = Principal.fromText('2vxsx-fae');
+
     if (user.length!=0 && pw.length!=0){	
-    	call_insert(key, user, pw);
+    	call_insert(identity, key, user, pw);
     	add_row(key, user, pw);
     	clear_input();
     }
