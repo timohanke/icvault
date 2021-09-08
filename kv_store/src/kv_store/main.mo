@@ -55,7 +55,7 @@ actor {
 
   // The function returns the value for the given key associated with the
   // caller's principal ID, if available.
-  public shared(msg) func lookup(key : Key) : async ?Value {
+  public query(msg) func lookup(key : Key) : async ?Value {
       var option = main_map.get(msg.caller);
       switch (option) {
           case (?map) {
@@ -74,7 +74,7 @@ actor {
 
   // The function returns the key-value pairs associated with the caller's
   // principal ID, if available.
-  public shared(msg) func get_kvstore() : async [KVEntry] {
+  public query(msg) func get_kvstore() : async [KVEntry] {
       var option = main_map.get(msg.caller);
       switch (option) {
           case (?map) {
