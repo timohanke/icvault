@@ -123,9 +123,6 @@ const init = async () => {
     const exportedAsBase64 = window.btoa(exportedAsString);
     window.myPublicKeyString = exportedAsBase64;
 
-    // temporary
-    window.myKeyPair = keypair;
-
     console.log("Exporting private key .. ");
     const exported_private = await window.crypto.subtle.exportKey('pkcs8', keypair.privateKey)
     const exported_privateAsString = ab2str(exported_private);
@@ -135,47 +132,49 @@ const init = async () => {
     local_store.setItem("PublicKey", window.myPublicKeyString);
     local_store.setItem("PrivateKey", window.myPrivateKeyString);
 
+    window.myPublicKey = keypair.publicKey;
+    window.myPrivateKey = keypair.privateKey;
+
   } else {
 
     console.log("Loading keys from local store");
     window.myPublicKeyString = local_store.getItem("PublicKey");
     window.myPrivateKeyString = local_store.getItem("PrivateKey");
 
+    window.crypto.subtle.importKey(
+        'spki',
+        str2ab(window.atob(window.myPublicKeyString)),
+        {
+            name: "RSA-OAEP",
+            hash: {name: "SHA-256"},
+        },
+        true,
+        ["encrypt", "wrapKey"]
+    ).then((key) => {
+        console.log("Success importing public key: " + key);
+        window.myPublicKey = key;
+    }).catch((err) => {
+        console.error("Failed to import public key: " + err);
+    });
+
+    window.crypto.subtle.importKey(
+        'pkcs8',
+        str2ab(window.atob(window.myPrivateKeyString)),
+        {
+            name: "RSA-OAEP",
+            hash: {name: "SHA-256"},
+        },
+        true,
+        ["decrypt", "unwrapKey"]
+    ).then((key) => {
+        console.log("Success importing private key: " + key);
+        window.myPrivateKey = key;
+    }).catch((err) => {
+        console.error("Failed to import private key: " + err);
+    });
   }
   console.log("Public key is: " + window.myPublicKeyString);
   console.log("Private key is: " + window.myPrivateKeyString);
-
-  window.myPublicKey = await window.crypto.subtle.importKey(
-      'spki',
-      str2ab(window.atob(window.myPublicKeyString)),
-      {
-          name: "RSA-OAEP",
-          hash: {name: "SHA-256"},
-      },
-      true,
-      ["encrypt"]
-  ).then(function(key) {
-      console.log("Success importing public key: " + key);
-      window.myPublicKey = key;
-  }).catch(function(err) {
-      console.error("Failed to import public key: " + err);
-  });
-
-  window.myPrivateKey = await window.crypto.subtle.importKey(
-      'pkcs8',
-      str2ab(window.atob(window.myPrivateKeyString)),
-      {
-          name: "RSA-OAEP",
-          hash: {name: "SHA-256"},
-      },
-      true,
-      ["decrypt"]
-  ).then(function(key) {
-      console.log("Success importing private key: " + key);
-      window.myPrivateKey = key;
-  }).catch(function(err) {
-      console.error("Failed to import private key: " + err);
-  });
     
   await initial_load();
 };
@@ -258,8 +257,13 @@ seedBtn.addEventListener('click', async () => {
             window.crypto.subtle.wrapKey(
                 'raw', 
                 key, 
-                window.myKeyPair.publicKey,  // TODO: this variable does not currently exist 
-                { name: "RSA-OAEP" } 
+                window.myPublicKey,
+                {
+                    name: "RSA-OAEP",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([1, 0, 1]),
+                    hash: "SHA-256",
+                } 
             ).then( (wrapped) => {
                 // serialize it
                 const exportedAsString = ab2str(wrapped);
@@ -293,13 +297,14 @@ syncBtn.addEventListener('click', async () => {
     console.log('get_ciphertext : ',result);
     if ('err' in result) {
         if ('notFound' in result.err) {
-            syncResponseEl.innerText += 'Own public key is not registered. Go back to step 1.';
+            syncResponseEl.innerText += '\nOwn public key is not registered. Go back to step 1.';
             console.log('get_ciphertext error: notFound');
         } else {
-            syncResponseEl.innerText += 'Own public key is not synced. Do step 3 on a synced device.';
+            syncResponseEl.innerText += '\nOwn public key is not synced. Do step 3 on a synced device.';
             console.log('get_ciphertext error: notSynced');
         }
     } else {
+        syncResponseEl.innerText += '\nDone.';
         console.log('sync succesful: ',result.ok);
     }
   });
