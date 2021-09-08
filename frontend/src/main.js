@@ -590,6 +590,8 @@ function start_delete_row(event) {
     var key = row.getElementsByClassName('cred_key')[0].childNodes[0].nodeValue;
     var user = row.getElementsByClassName('cred_user')[0].childNodes[0].nodeValue;
     var pw = row.getElementsByClassName('cred_pw')[0].childNodes[0].nodeValue;
+    
+    const identity = await authClient.getIdentity();
 
     add_row(key, user, pw, true);
 
@@ -597,6 +599,7 @@ function start_delete_row(event) {
         agent: new HttpAgent(
             {
                 host: 'https://ic0.app/',
+                identity,
             }
         ),
         canisterId: vaultCanister,
@@ -710,10 +713,14 @@ create_new_button.addEventListener('click', async () => {
 })
 
 const initial_load = async () => {
+
+    const identity = await authClient.getIdentity();
+    
     const actor = Actor.createActor(vaultIdlFactory, {
         agent: new HttpAgent(
             {
                 host: 'https://ic0.app/',
+                identity,
             }
         ),
         canisterId: vaultCanister,
