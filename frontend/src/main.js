@@ -307,13 +307,31 @@ syncBtn.addEventListener('click', async () => {
     } else {
         syncResponseEl.innerText += '\nDone.';
         console.log('sync succesful: ',result.ok);
+        syncResponseEl.innerText += '\nUnwrapping...';
+        // unwrap key
+        window.crypto.subtle.unwrapKey(
+            'raw',
+            str2ab(window.atob(result.ok)),
+            window.myPrivateKey,
+            { 
+                name: "RSA-OAEP" 
+            },
+            {
+                name: "AES-GCM",
+                length: 256
+            },
+            true,
+            [ "encrypt", "decrypt"]
+        ).then((unwrapped) => {
+           syncResponseEl.innerText += '\nDone.';
+        });
+          // store key in window.thesecret
+
+          // re-encrypt for others
+          // call submit_ciphertexts
+
     }
   });
-  // unwrap key
-  // store key in window.thesecret
-
-  // re-encrypt for others
-  // call submit_ciphertexts
 });
 
 // The function encrypts all data deterministically in order to enable lookups.
@@ -366,12 +384,15 @@ function call_insert(identity, key, user, pw) {
     });
 }
 
-function make_with_input_cell(className,content) {
+function make_with_input_cell(className, content, ro=false) {
     var cell = document.createElement('div');
     cell.className = className;
     var  field = document.createElement('input');
     field.setAttribute('type', 'text');
     field.setAttribute('value', content);
+    if (ro) {
+        field.readOnly = true;
+    }
     cell.appendChild(field);
     return cell;
 }
@@ -498,7 +519,7 @@ function make_row_editable(event) {
     editable_row.className = row.className;
     editable_row.id = "datarow-" + key;
 
-    editable_row.appendChild(make_with_input_cell('cred_key', key));
+    editable_row.appendChild(make_with_input_cell('cred_key', key, true));
     editable_row.appendChild(make_with_input_cell('cred_user', row.getElementsByClassName('cred_user')[0].childNodes[0].nodeValue));
     editable_row.appendChild(make_with_input_cell('cred_pw', row.getElementsByClassName('cred_pw')[0].childNodes[0].nodeValue));
 

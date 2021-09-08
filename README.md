@@ -23,7 +23,7 @@ The IC Vault front page defines the basic workflow. The following steps have to 
 
 Futher details can be found in the design document (see below).
 
-On consecutive accesses to the IC Vault the user needs to sign into the IC and when using a registered device the sensitive data can be seamlessly accessed.  
+On consecutive accesses to the IC Vault the user needs to sign with II. When using a registered device the sensitive data can be seamlessly accessed and displayed.  
 
 # Documentation
 
