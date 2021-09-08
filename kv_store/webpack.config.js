@@ -34,7 +34,7 @@ initCanisterIds();
 const isDevelopment = process.env.NODE_ENV !== "production";
 const asset_entry = path.join(
   "src",
-  "ic_vault_assets",
+  "kv_store_assets",
   "src",
   "index.html"
 );
@@ -64,7 +64,7 @@ module.exports = {
   },
   output: {
     filename: "index.js",
-    path: path.join(__dirname, "dist", "ic_vault_assets"),
+    path: path.join(__dirname, "dist", "kv_store_assets"),
   },
 
   // Depending in the language or framework you are using for
@@ -86,14 +86,14 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         {
-          from: path.join(__dirname, "src", "ic_vault_assets", "assets"),
-          to: path.join(__dirname, "dist", "ic_vault_assets"),
+          from: path.join(__dirname, "src", "kv_store_assets", "assets"),
+          to: path.join(__dirname, "dist", "kv_store_assets"),
         },
       ],
     }),
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'development',
-      IC_VAULT_CANISTER_ID: canisters["ic_vault"]
+      IC_VAULT_CANISTER_ID: canisters["kv_store"]
     }),
     new webpack.ProvidePlugin({
       Buffer: [require.resolve("buffer/"), "Buffer"],
@@ -112,7 +112,7 @@ module.exports = {
       },
     },
     hot: true,
-    contentBase: path.resolve(__dirname, "./src/ic_vault_assets"),
+    contentBase: path.resolve(__dirname, "./src/kv_store_assets"),
     watchContentBase: true
   },
 };

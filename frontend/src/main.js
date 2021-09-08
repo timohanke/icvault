@@ -205,7 +205,9 @@ create_new_button.addEventListener('click', () => {
     var key = row.getElementsByClassName('key_input')[0].value;
     var user = row.getElementsByClassName('user_input')[0].value;
     var pw = row.getElementsByClassName('pw_input')[0].value;
-    call_insert(key, user, pw);
-    add_row(key, user, pw);
-    clear_input();
+    if (user.length!=0 && pw.length!=0){	
+    	call_insert(key, user, pw);
+    	add_row(key, user, pw);
+    	clear_input();
+    }
 })

@@ -1,19 +1,19 @@
 {
   "canisters": {
-    "ic_vault": {
-      "main": "src/ic_vault/main.mo",
+    "kv_store": {
+      "main": "src/kv_store/main.mo",
       "type": "motoko"
     },
-    "ic_vault_assets": {
+    "kv_store_assets": {
       "dependencies": [
-        "ic_vault"
+        "kv_store"
       ],
       "frontend": {
-        "entrypoint": "src/ic_vault_assets/src/index.html"
+        "entrypoint": "src/kv_store_assets/src/index.html"
       },
       "source": [
-        "src/ic_vault_assets/assets",
-        "dist/ic_vault_assets/"
+        "src/kv_store_assets/assets",
+        "dist/kv_store_assets/"
       ],
       "type": "assets"
     }

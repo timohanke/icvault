@@ -1,5 +1,5 @@
 {
-  "name": "ic_vault_assets",
+  "name": "kv_store_assets",
   "version": "0.1.0",
   "description": "Internet Computer starter application",
   "keywords": ["Internet Computer", "Motoko", "JavaScript", "Canister"],
