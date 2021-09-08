@@ -526,13 +526,17 @@ function remove_row(key) {
 
 function load_rows(rows) {
     for (const row of rows) {
-        let key = decrypt(row.key, "verysecret");
-        console.log("encrypted "+row.value);
-        console.log("decrypted "+decrypt(row.value, "verysecret"));
-        let value = JSON.parse(decrypt(row.value, "verysecret"));
-        let username = value.username;
-        let pw = value.password;
-        add_row(key, username, pw, false);
+        try {
+            let key = decrypt(row.key, "verysecret");
+            console.log("encrypted "+row.value);
+            console.log("decrypted "+decrypt(row.value, "verysecret"));
+            let value = JSON.parse(decrypt(row.value, "verysecret"));
+            let username = value.username;
+            let pw = value.password;
+            add_row(key, username, pw, false);
+        } catch (error) {
+            console.error("Failed to read row: " + row + " - with error: " + error);
+        }
     }
 }
 
