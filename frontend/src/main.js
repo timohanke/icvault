@@ -204,11 +204,20 @@ seedBtn.addEventListener('click', async () => {
             ["encrypt", "decrypt"]
         ).then( (key) => {
             // Wrap key for own pubkey
-            // const wrapped = crypto.subtle.wrapKey('raw', key, window.myKeyPair.publicKey, { name: "RSA-OAEP" } );
-
-            // Call actor.seed
-            actor.seed(window.myPublicKeyString,"c1").then( () => {
-                seedResponseEl.innerText += "\nDone.";
+            window.crypto.subtle.wrapKey(
+                'raw', 
+                key, 
+                window.myKeyPair.publicKey, 
+                { name: "RSA-OAEP" } 
+            ).then( (wrapped) => {
+                // serialize it
+                const exportedAsString = ab2str(wrapped);
+                const exportedAsBase64 = window.btoa(exportedAsString);
+                console.log("Submitting wrapped secret: " + exportedAsBase64);
+                // Call actor.seed
+                actor.seed(window.myPublicKeyString, exportedAsBase64).then( () => {
+                    seedResponseEl.innerText += "\nDone.";
+                });
             });
         });
     }
