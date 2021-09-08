@@ -65,6 +65,17 @@ function ab2str(buf) {
   return String.fromCharCode.apply(null, new Uint8Array(buf));
 }
 
+function change_app_view(state) {
+    for (const view of ['loading', 'table']) {
+        var e = document.getElementById('app_view_' + view);
+        if (view == state) {
+            e.className = 'app_state_visible';
+        } else {
+            e.className = 'app_state_invisible';
+        }
+    }
+}
+
 const init = async () => {
   authClient = await AuthClient.create();
   principalEl.innerText = await authClient.getIdentity().getPrincipal();
@@ -84,14 +95,7 @@ const init = async () => {
   };
 
   let local_store = window.localStorage;
-  if (!local_store.getItem("test")) {
-    console.log("Local store does not exists, generating keys");
-    local_store.setItem("test", "bla");
-  } else {
-    console.log("Loading keys from local store");
-    console.log("Loaded: " + local_store.getItem("test"));
-  }
-  if (!local_store.getItem("myKeyPair")) {
+    if (true){//!local_store.getItem("myKeyPair")) {
 
     console.log("Local store does not exists, generating keys");
     window.myKeyPair = await crypto.subtle.generateKey(
@@ -114,6 +118,8 @@ const init = async () => {
   const exportedAsString = ab2str(exported);
   const exportedAsBase64 = window.btoa(exportedAsString);
   window.myPublicKeyString = exportedAsBase64;
+
+  await initial_load();
 };
 
 init();
@@ -363,9 +369,11 @@ const initial_load = async () => {
 
     actor.get_kvstore().then(result => {
         load_rows(result);
+        change_app_view('table');
     });
 }
 
 refresh.addEventListener('click', async () => {
+    change_app_view('loading');
     initial_load();
 })
