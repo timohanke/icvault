@@ -162,7 +162,7 @@ const init = async () => {
   if (local_store.getItem("DeviceAlias")) {
     document.getElementById('deviceAliasLocalStore').innerHTML = local_store.getItem("DeviceAlias");
   }
-    
+
   window.myPrivateKey = await window.crypto.subtle.importKey(
       'pkcs8',
       str2ab(window.atob(window.myPrivateKeyString)),
@@ -178,7 +178,7 @@ const init = async () => {
   }).catch(function(err) {
       console.error("Failed to import private key: " + err);
   });
-    
+
   await initial_load();
 };
 
@@ -257,10 +257,10 @@ seedBtn.addEventListener('click', async () => {
         ).then( (key) => {
             // Wrap key for own pubkey
             window.crypto.subtle.wrapKey(
-                'raw', 
-                key, 
-                window.myKeyPair.publicKey,  // TODO: this variable does not currently exist 
-                { name: "RSA-OAEP" } 
+                'raw',
+                key,
+                window.myKeyPair.publicKey,  // TODO: this variable does not currently exist
+                { name: "RSA-OAEP" }
             ).then( (wrapped) => {
                 // serialize it
                 const exportedAsString = ab2str(wrapped);
@@ -299,12 +299,32 @@ syncBtn.addEventListener('click', async () => {
   // call submit_ciphertexts
 });
 
+// The function encrypts all data deterministically in order to enable lookups.
+// It would be possible to use deterministic encryption only for the encryption
+// of keys. All data is correctly encrypted using deterministic encryption for
+// the sake of simplicity.
 function encrypt(data, encryption_key) {
-  return "1"+data;
+  var CryptoJS = require("crypto-js");
+  // An all-zero initialization vector is used.
+  var init_vector = CryptoJS.enc.Base64.parse("0000000000000000000000");
+  // The encryption key is hashed.
+  var hash = CryptoJS.SHA256(encryption_key);
+  // AES is used to get the encrypted data.
+  var encrypted_data = CryptoJS.AES.encrypt(data, hash, {iv: init_vector});
+  return encrypted_data.toString();
 }
 
+// The function decrypts the given input data.
 function decrypt(data, decryption_key) {
-  return data.substring(1);
+  var CryptoJS = require("crypto-js");
+  // The initialization vector must also be provided.
+  var init_vector = CryptoJS.enc.Base64.parse("0000000000000000000000");
+  // The encryption key is hashed.
+  var hash = CryptoJS.SHA256(encryption_key);
+  // THe data is decrypted using AES.
+  var decrypted_data = CryptoJS.AES.decrypt(data, hash, {iv: init_vector});
+  // The return value must be converted to plain UTF-8.
+  return decodeURIComponent(decrypted_data.toString().replace(/\s+/g, '').replace(/[0-9a-f]{2}/g, '%$&'));
 }
 
 function call_insert(identity, key, user, pw) {
@@ -321,7 +341,7 @@ function call_insert(identity, key, user, pw) {
         ),
         canisterId: vaultCanister,
     });
-	
+
     const encrypted_key = encrypt(key, "verysecret");
     const encrypted_value = encrypt(value, "verysecret");
     actor.insert(encrypted_key, encrypted_value).then(async () => {
