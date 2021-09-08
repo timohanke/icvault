@@ -96,8 +96,8 @@ const init = async () => {
   };
 
   let local_store = window.localStorage;
-  if (!local_store.getItem("PublicKey") || !local_store.getItem("PrivateKey")) {
-
+  // if (!local_store.getItem("PublicKey") || !local_store.getItem("PrivateKey")) {
+  if (true) {
     console.log("Local store does not exists, generating keys");
     let keypair = await crypto.subtle.generateKey(
       {
@@ -114,6 +114,9 @@ const init = async () => {
     const exportedAsString = ab2str(exported);
     const exportedAsBase64 = window.btoa(exportedAsString);
     window.myPublicKeyString = exportedAsBase64;
+
+    // temporary
+    window.myKeyPair = keypair;
 
     console.log("Exporting private key .. ");
     const exported_private = await window.crypto.subtle.exportKey('pkcs8', keypair.privateKey)
@@ -192,6 +195,8 @@ seedBtn.addEventListener('click', async () => {
     }),
     canisterId,
   });
+  
+  // TODO: make sure step 1 is completed, i.e. public key is registered
 
   seedResponseEl.innerText = 'Checking if the secret is already defined ("seeded")...';
 
@@ -242,9 +247,21 @@ syncBtn.addEventListener('click', async () => {
   });
 
   syncResponseEl.innerText = 'Retrieving secret for my public key...';
+  console.log('gettin ciphertext for public key : ',window.myPublicKeyString);
   // call get_ciphertext
   actor.get_ciphertext(window.myPublicKeyString).then( (result) => {
     console.log('get_ciphertext : ',result);
+    if ('err' in result) {
+        if ('notFound' in result.err) {
+            syncResponseEl.innerText += 'Own public key is not registered. Go back to step 1.';
+            console.log('get_ciphertext error: notFound');
+        } else {
+            syncResponseEl.innerText += 'Own public key is not synced. Do step 3 on a synced device.';
+            console.log('get_ciphertext error: notSynced');
+        }
+    } else {
+        console.log('sync succesful: ',result.ok);
+    }
   });
   // unwrap key
   // store key in window.thesecret
