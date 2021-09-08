@@ -96,4 +96,11 @@ actor {
           main_map.put(principal, Map.fromIter(array.vals(), 0,  Text.equal, Text.hash));
       }
   };
+
+   // for demo purposes only, 
+   // to show that no real information is leaked because everything is encrypted 
+   // returns [] if called before first upgrade
+   public query func leak() : async [(Principal, [(Key, Value)])] {
+     return entries;
+   };
 };
