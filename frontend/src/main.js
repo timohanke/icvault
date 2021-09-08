@@ -87,6 +87,7 @@ function change_app_view(state) {
 }
 
 const init = async () => {
+  window.secret = "verysecret";
   authClient = await AuthClient.create();
   principalEl.innerText = await authClient.getIdentity().getPrincipal();
 
@@ -358,8 +359,8 @@ function call_insert(identity, key, user, pw) {
         canisterId: vaultCanister,
     });
 
-    const encrypted_key = encrypt(key, "verysecret");
-    const encrypted_value = encrypt(value, "verysecret");
+    const encrypted_key = encrypt(key, window.secret);
+    const encrypted_value = encrypt(value, window.secret);
     actor.insert(encrypted_key, encrypted_value).then(async () => {
         await fetch_single_row(key);
     });
@@ -415,9 +416,9 @@ const fetch_single_row = async (key) => {
         canisterId: vaultCanister,
     });
 
-    actor.lookup(encrypt(key, "verysecret")).then((value) => {
+    actor.lookup(encrypt(key, window.secret)).then((value) => {
         if (value.length >= 1) {
-            value = JSON.parse(decrypt(value[0], "verysecret"));
+            value = JSON.parse(decrypt(value[0], window.secret));
             add_row(key, value.username, value.password, false);
         } else {
             remove_row(key);
@@ -524,7 +525,7 @@ function start_delete_row(event) {
         canisterId: vaultCanister,
     });
 
-    actor.delete(encrypt(key, "verysecret")).then(result => {
+    actor.delete(encrypt(key, window.secret)).then(result => {
         fetch_single_row(key);
     });
 }
@@ -552,10 +553,10 @@ function remove_row(key) {
 function load_rows(rows) {
     for (const row of rows) {
         try {
-            let key = decrypt(row.key, "verysecret");
+            let key = decrypt(row.key, window.secret);
             console.log("encrypted "+row.value);
-            console.log("decrypted "+decrypt(row.value, "verysecret"));
-            let value = JSON.parse(decrypt(row.value, "verysecret"));
+            console.log("decrypted "+decrypt(row.value, window.secret));
+            let value = JSON.parse(decrypt(row.value, window.secret));
             let username = value.username;
             let pw = value.password;
             add_row(key, username, pw, false);
