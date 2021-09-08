@@ -631,9 +631,12 @@ function remove_row(key) {
 }
 
 async function remove_device(event) {
-    var elem = event.target.parentNode.childNodes[0];
+
+    var button = event.target;
+    var elem = button.parentNode.childNodes[0];
     var d = elem.innerHTML;
     console.log("Removing device: " + d);
+    button.remove();
 
     const identity = await authClient.getIdentity();
     const canisterId = Principal.fromText(keySyncCanister);
