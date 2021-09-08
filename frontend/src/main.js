@@ -213,7 +213,7 @@ seedBtn.addEventListener('click', async () => {
             window.crypto.subtle.wrapKey(
                 'raw', 
                 key, 
-                window.myKeyPair.publicKey, 
+                window.myKeyPair.publicKey,  // TODO: this variable does not currently exist 
                 { name: "RSA-OAEP" } 
             ).then( (wrapped) => {
                 // serialize it
@@ -241,7 +241,16 @@ syncBtn.addEventListener('click', async () => {
     canisterId,
   });
 
-  syncResponseEl.innerText = 'Retrieving secret...';
+  syncResponseEl.innerText = 'Retrieving secret for my public key...';
+  // call get_ciphertext
+  actor.get_ciphertext(window.myPublicKeyString).then( (result) => {
+    console.log('get_ciphertext : ',result);
+  });
+  // unwrap key
+  // store key in window.thesecret
+
+  // re-encrypt for others
+  // call submit_ciphertexts
 });
 
 function encrypt(data, encryption_key) {
