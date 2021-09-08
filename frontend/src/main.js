@@ -383,12 +383,15 @@ function call_insert(identity, key, user, pw) {
     });
 }
 
-function make_with_input_cell(className,content) {
+function make_with_input_cell(className, content, ro=false) {
     var cell = document.createElement('div');
     cell.className = className;
     var  field = document.createElement('input');
     field.setAttribute('type', 'text');
     field.setAttribute('value', content);
+    if (ro) {
+        field.readOnly = true;
+    }
     cell.appendChild(field);
     return cell;
 }
@@ -515,7 +518,7 @@ function make_row_editable(event) {
     editable_row.className = row.className;
     editable_row.id = "datarow-" + key;
 
-    editable_row.appendChild(make_with_input_cell('cred_key', key));
+    editable_row.appendChild(make_with_input_cell('cred_key', key, true));
     editable_row.appendChild(make_with_input_cell('cred_user', row.getElementsByClassName('cred_user')[0].childNodes[0].nodeValue));
     editable_row.appendChild(make_with_input_cell('cred_pw', row.getElementsByClassName('cred_pw')[0].childNodes[0].nodeValue));
 

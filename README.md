@@ -10,7 +10,7 @@ IC Vault is decomposed into the following components:
 * UI is located in [frontend](/frontend)
 * Managment of devices is handeld by the Motoko [key_sync](/key_sync) canister 
 * Storage of sensitive data is handeld by the [kv_store](/kv_store) canister
-* Assets of the frontend are provided by the kv_store_assets caniser
+* Assets of the frontend are provided by the kv_store_assets canister
 
 Each of the main folders ([frontend](/frontend), [key_sync](/key_sync) and [kv_store](/kv_store)) provides a Makefile to build and deploy the individiual components. 
 
@@ -23,7 +23,7 @@ The IC Vault front page defines the basic workflow. The following steps have to 
 
 Futher details can be found in the design document (see below).
 
-On consecutive accesses to the IC Vault the user needs to sign into the IC and when using a registered device the sensitive data can be seamlessly accessed.  
+On consecutive accesses to the IC Vault the user needs to sign with II. When using a registered device the sensitive data can be seamlessly accessed and displayed.  
 
 # Documentation
 
