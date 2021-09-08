@@ -53,6 +53,14 @@ actor {
       };
   };
 
+  // For debugging purposes, clear the entire KV store.
+  // This includes data for all users, not just the caller.
+  public shared(msg) func clear(): async () {
+      for ((principal, map) in main_map.entries()) {
+          main_map.delete(principal);
+      };
+  };
+
   // The function returns the value for the given key associated with the
   // caller's principal ID, if available.
   public query(msg) func lookup(key : Key) : async ?Value {
