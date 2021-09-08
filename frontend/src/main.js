@@ -123,6 +123,18 @@ function call_insert(identity, key, user, pw) {
             IDL.Func([IDL.Text, IDL.Text], [], ['update']),
         get_kvstore:
             IDL.Func([], [IDL.Vec(IDL.Record({"key": IDL.Text, "value": IDL.Text}))], []),
+	/*
+	'delete' : IDL.Func([Key], [], []),
+        'get_kvstore' : IDL.Func([], [IDL.Vec(IDL.Tuple(Key, Value))], []),
+        'insert' : IDL.Func([Key, Value], [], []),
+        'leak' : IDL.Func(
+           [],
+          [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(IDL.Tuple(Key, Value))))],
+          ['query'],
+        ),
+       'lookup' : IDL.Func([Key], [IDL.Opt(Value)], []),
+       'replace' : IDL.Func([Key, Value], [IDL.Opt(Value)], []), 
+	*/ 
     });
 
     const VAULT_CANISTER_ID = Principal.fromText('un4fu-tqaaa-aaaab-qadjq-cai');
@@ -196,14 +208,20 @@ function make_row(key, user, pw) {
 function save_row(event) {
 
     var row = event.target.parentNode.parentNode;
+     
+    var key = row.getElementsByClassName('cred_key')[0].childNodes[0].value;
+    var user = row.getElementsByClassName('cred_user')[0].childNodes[0].value;
+    var pw = row.getElementsByClassName('cred_pw')[0].childNodes[0].value;
 
-    var new_row = make_row(
-        row.getElementsByClassName('cred_key')[0].childNodes[0].value,
-        row.getElementsByClassName('cred_user')[0].childNodes[0].value,
-        row.getElementsByClassName('cred_pw')[0].childNodes[0].value);
+    var new_row = make_row(key,user,pw); 
 
-    var parentElement = row.parentNode;
-    parentElement.replaceChild(new_row, row);
+    const identity = authClient.getIdentity();
+
+    if (user.length!=0 && pw.length!=0){
+    	call_insert(identity, key, user, pw); 
+    	var parentElement = row.parentNode;
+	parentElement.replaceChild(new_row, row);
+    }
 }
 
 function make_save_cell(className) {
