@@ -291,7 +291,7 @@ seedBtn.addEventListener('click', async () => {
                 console.log("Submitting wrapped secret: " + exportedAsBase64);
                 // Call actor.seed
                 actor.seed(window.myPublicKeyString, exportedAsBase64).then( () => {
-                    seedResponseEl.innerText += "\nDone.";
+                    seedResponseEl.innerText += "Done.";
                 });
             });
         });
@@ -317,14 +317,14 @@ syncBtn.addEventListener('click', async () => {
     console.log('get_ciphertext : ',result);
     if ('err' in result) {
         if ('notFound' in result.err) {
-            syncResponseEl.innerText += '\nOwn public key is not registered. Go back to step 1.';
+            syncResponseEl.innerText += 'Failed.\nOwn public key is not registered. Go back to step 1.';
             console.log('get_ciphertext error: notFound');
         } else {
-            syncResponseEl.innerText += '\nOwn public key is not synced. Do step 3 on an already synced device. Or do step 2 if this is the first device.';
+            syncResponseEl.innerText += 'Failed.\nOwn public key is not synced. Do step 3 on an already synced device. Or do step 2 if this is the first device.';
             console.log('get_ciphertext error: notSynced');
         }
     } else {
-        syncResponseEl.innerText += '\nDone.';
+        syncResponseEl.innerText += 'Done.';
         console.log('sync succesful: ',result.ok);
         syncResponseEl.innerText += '\nUnwrapping...';
         // unwrap key
@@ -342,12 +342,13 @@ syncBtn.addEventListener('click', async () => {
             true,
             [ "encrypt", "decrypt"]
         ).then((unwrapped) => {
-            syncResponseEl.innerText += '\nDone.';
+            syncResponseEl.innerText += 'Done.';
             // store key in window.secret
             window.crypto.subtle.exportKey('raw', unwrapped).then((exported) => {
                 const exportedAsBase64 = window.btoa(ab2str(exported));
                 window.secret = exportedAsBase64;
                 console.log('shared secret: ' + exportedAsBase64);
+                syncResponseEl.innerText += '\nShared secret: ' + exportedAsBase64;
             });
             // re-encrypt/wrap secret for all unsynced other devices
             actor.get_unsynced_pubkeys().then((list) => {
