@@ -306,13 +306,31 @@ syncBtn.addEventListener('click', async () => {
     } else {
         syncResponseEl.innerText += '\nDone.';
         console.log('sync succesful: ',result.ok);
+        syncResponseEl.innerText += '\nUnwrapping...';
+        // unwrap key
+        window.crypto.subtle.unwrapKey(
+            'raw',
+            str2ab(window.atob(result.ok)),
+            window.myPrivateKey,
+            { 
+                name: "RSA-OAEP" 
+            },
+            {
+                name: "AES-GCM",
+                length: 256
+            },
+            true,
+            [ "encrypt", "decrypt"]
+        ).then((unwrapped) => {
+           syncResponseEl.innerText += '\nDone.';
+        });
+          // store key in window.thesecret
+
+          // re-encrypt for others
+          // call submit_ciphertexts
+
     }
   });
-  // unwrap key
-  // store key in window.thesecret
-
-  // re-encrypt for others
-  // call submit_ciphertexts
 });
 
 // The function encrypts all data deterministically in order to enable lookups.
