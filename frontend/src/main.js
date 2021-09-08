@@ -14,8 +14,8 @@ const seedResponseEl = document.getElementById('seedResponse');
 const syncResponseEl = document.getElementById('syncResponse');
 
 const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
-// const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
-const vaultCanister = "un4fu-tqaaa-aaaab-qadjq-cai"; // from Motoko playground
+const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai"; // deployment on IC
+//const vaultCanister = "un4fu-tqaaa-aaaab-qadjq-cai"; // from Motoko playground
 
 const vaultIdlFactory = ({ IDL }) =>
     IDL.Service({
