@@ -15,6 +15,18 @@ const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
 // const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
 const vaultCanister = "un4fu-tqaaa-aaaab-qadjq-cai"; // from Motoko playground
 
+const vaultIdlFactory = ({ IDL }) =>
+    IDL.Service({
+    insert:
+        IDL.Func([IDL.Text, IDL.Text], [], ['update']),
+    get_kvstore:
+        IDL.Func([], [IDL.Vec(IDL.Record({"key": IDL.Text, "value": IDL.Text}))], []),
+    'delete':
+        IDL.Func([IDL.Text], [], []),
+    lookup : IDL.Func([IDL.Text], [IDL.Opt(IDL.Text)], []),
+    replace : IDL.Func([IDL.Text, IDL.Text], [IDL.Opt(IDL.Text)], []),
+});
+
 let authClient;
 
 const keySync_idlFactory = ({ IDL }) => {
@@ -85,7 +97,6 @@ const init = async () => {
   const exportedAsString = ab2str(exported);
   const exportedAsBase64 = window.btoa(exportedAsString);
   window.myPublicKeyString = exportedAsBase64;
-
 };
 
 init();
@@ -139,37 +150,18 @@ registerDeviceBtn.addEventListener('click', async () => {
 });
 
 function call_insert(identity, key, user, pw) {
-    const idlFactory = ({ IDL }) =>
-        IDL.Service({
-        insert:
-            IDL.Func([IDL.Text, IDL.Text], [], ['update']),
-        get_kvstore:
-            IDL.Func([], [IDL.Vec(IDL.Record({"key": IDL.Text, "value": IDL.Text}))], []),
-	/*
-	'delete' : IDL.Func([Key], [], []),
-        'get_kvstore' : IDL.Func([], [IDL.Vec(IDL.Tuple(Key, Value))], []),
-        'insert' : IDL.Func([Key, Value], [], []),
-        'leak' : IDL.Func(
-           [],
-          [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(IDL.Tuple(Key, Value))))],
-          ['query'],
-        ),
-       'lookup' : IDL.Func([Key], [IDL.Opt(Value)], []),
-       'replace' : IDL.Func([Key, Value], [IDL.Opt(Value)], []), 
-	*/ 
-    });
 
     const VAULT_CANISTER_ID = Principal.fromText(vaultCanister);
 
     const value = JSON.stringify({username: user, password: pw});
-    const actor = Actor.createActor(idlFactory, {
+    const actor = Actor.createActor(vaultIdlFactory, {
         agent: new HttpAgent(
             {
                 host: 'https://ic0.app/',
                 identity,
             }
         ),
-        canisterId: VAULT_CANISTER_ID,
+        canisterId: vaultCanister,
     });
 
     actor.insert(key, value).then(() => {
@@ -230,17 +222,17 @@ function make_row(key, user, pw) {
 function save_row(event) {
 
     var row = event.target.parentNode.parentNode;
-     
+
     var key = row.getElementsByClassName('cred_key')[0].childNodes[0].value;
     var user = row.getElementsByClassName('cred_user')[0].childNodes[0].value;
     var pw = row.getElementsByClassName('cred_pw')[0].childNodes[0].value;
 
-    var new_row = make_row(key,user,pw); 
+    var new_row = make_row(key,user,pw);
 
     const identity = authClient.getIdentity();
 
     if (user.length!=0 && pw.length!=0){
-    	call_insert(identity, key, user, pw); 
+    	call_insert(identity, key, user, pw);
     	var parentElement = row.parentNode;
 	parentElement.replaceChild(new_row, row);
     }
@@ -322,14 +314,14 @@ create_new_button.addEventListener('click', async () => {
     }
 })
 
-function initial_load() {
-    const actor = Actor.createActor(idlFactory, {
+const initial_load = async () => {
+    const actor = Actor.createActor(vaultIdlFactory, {
         agent: new HttpAgent(
             {
                 host: 'https://ic0.app/',
             }
         ),
-        canisterId: VAULT_CANISTER_ID,
+        canisterId: vaultCanister,
     });
 
     actor.get_kvstore().then(result => {
@@ -337,6 +329,6 @@ function initial_load() {
     });
 }
 
-refresh.addEventListener('click', () => {
+refresh.addEventListener('click', async () => {
     initial_load();
 })
