@@ -10,7 +10,7 @@ IC Vault is decomposed into the following components:
 * Storage of sensitive data is handeld by the [kv_store](/kv_store) canister
 * Assets of the frontend are provided by the kv_store_assets caniser
 
-TODO
+Each of the main folders ([frontend](/frontend), [key_sync](/key_sync) and [kv_store](/kv_store)) provides a Makefile to build and deploy the individiual components. 
 
 # How to use it
 

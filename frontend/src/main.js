@@ -14,8 +14,8 @@ const seedResponseEl = document.getElementById('seedResponse');
 const syncResponseEl = document.getElementById('syncResponse');
 
 const keySyncCanister = "khpze-daaaa-aaaai-aal6q-cai";
-// const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai";
-const vaultCanister = "un4fu-tqaaa-aaaab-qadjq-cai"; // from Motoko playground
+const vaultCanister = "uvf7r-liaaa-aaaah-qabnq-cai"; // deployment on IC
+//const vaultCanister = "un4fu-tqaaa-aaaab-qadjq-cai"; // from Motoko playground
 
 const vaultIdlFactory = ({ IDL }) =>
     IDL.Service({
@@ -175,7 +175,11 @@ const init = async () => {
   }
   console.log("Public key is: " + window.myPublicKeyString);
   console.log("Private key is: " + window.myPrivateKeyString);
-    
+
+  if (local_store.getItem("DeviceAlias")) {
+    document.getElementById('deviceAliasLocalStore').innerHTML = local_store.getItem("DeviceAlias");
+  }
+
   await initial_load();
 };
 
@@ -217,6 +221,7 @@ registerDeviceBtn.addEventListener('click', async () => {
 
   actor.register_device(deviceAliasEl.value, window.myPublicKeyString).then(result => {
     if (result) {
+        window.localStorage.setItem("DeviceAlias", deviceAliasEl.value);
         registerDeviceEl.innerText += "\nDone.";
     } else {
         registerDeviceEl.innerText += "\nDevice alias already registered. Choose a unique alias. To overwrite an existing device call remove_device first (currently only through Candid UI).";
@@ -258,12 +263,7 @@ seedBtn.addEventListener('click', async () => {
                 'raw', 
                 key, 
                 window.myPublicKey,
-                {
-                    name: "RSA-OAEP",
-                    modulusLength: 2048,
-                    publicExponent: new Uint8Array([1, 0, 1]),
-                    hash: "SHA-256",
-                } 
+                { name: "RSA-OAEP" }
             ).then( (wrapped) => {
                 // serialize it
                 const exportedAsString = ab2str(wrapped);
@@ -315,12 +315,32 @@ syncBtn.addEventListener('click', async () => {
   // call submit_ciphertexts
 });
 
+// The function encrypts all data deterministically in order to enable lookups.
+// It would be possible to use deterministic encryption only for the encryption
+// of keys. All data is correctly encrypted using deterministic encryption for
+// the sake of simplicity.
 function encrypt(data, encryption_key) {
-  return "1"+data;
+  var CryptoJS = require("crypto-js");
+  // An all-zero initialization vector is used.
+  var init_vector = CryptoJS.enc.Base64.parse("0000000000000000000000");
+  // The encryption key is hashed.
+  var hash = CryptoJS.SHA256(encryption_key);
+  // AES is used to get the encrypted data.
+  var encrypted_data = CryptoJS.AES.encrypt(data, hash, {iv: init_vector});
+  return encrypted_data.toString();
 }
 
+// The function decrypts the given input data.
 function decrypt(data, decryption_key) {
-  return data.substring(1);
+  var CryptoJS = require("crypto-js");
+  // The initialization vector must also be provided.
+  var init_vector = CryptoJS.enc.Base64.parse("0000000000000000000000");
+  // The encryption key is hashed.
+  var hash = CryptoJS.SHA256(encryption_key);
+  // THe data is decrypted using AES.
+  var decrypted_data = CryptoJS.AES.decrypt(data, hash, {iv: init_vector});
+  // The return value must be converted to plain UTF-8.
+  return decodeURIComponent(decrypted_data.toString().replace(/\s+/g, '').replace(/[0-9a-f]{2}/g, '%$&'));
 }
 
 function call_insert(identity, key, user, pw) {
@@ -337,7 +357,7 @@ function call_insert(identity, key, user, pw) {
         ),
         canisterId: vaultCanister,
     });
-	
+
     const encrypted_key = encrypt(key, "verysecret");
     const encrypted_value = encrypt(value, "verysecret");
     actor.insert(encrypted_key, encrypted_value).then(async () => {
