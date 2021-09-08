@@ -87,7 +87,6 @@ function change_app_view(state) {
 }
 
 const init = async () => {
-  window.secret = "verysecret";
   authClient = await AuthClient.create();
   principalEl.innerText = await authClient.getIdentity().getPrincipal();
 
