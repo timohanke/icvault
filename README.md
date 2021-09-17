@@ -32,4 +32,4 @@ On consecutive accesses to the `IC Vault`, the user needs to sign into the IC us
 
 # Documentation
 
-Additional documentation is provided in the [linked document](https://docs.google.com/document/d/1dUvzQBKNM9COXPXw-mWnmXQOhwSdrSA2QRuefnYCnaU/edit#heading=h.tfzfyr8zn3o2).
+Additional documentation is provided in the [linked document](https://docs.google.com/document/d/1dUvzQBKNM9COXPXw-mWnmXQOhwSdrSA2QRuefnYCnaU/). Also see the [linked presentation](https://docs.google.com/presentation/d/1P3wGgXRvzxAca65M2x8RL9OhGlvqSN1oIRprM9pcPEM/).
