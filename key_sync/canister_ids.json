@@ -1,9 +1,9 @@
 {
   "__Candid_UI": {
-      "mercury": "khpze-daaaa-aaaai-aal6q-cai"
+      "mercury": "[INSERT CANISTER PRINCIPAL ID]"
   },
   "key_sync": {
-      "mercury": "khpze-daaaa-aaaai-aal6q-cai",
-      "ic": "khpze-daaaa-aaaai-aal6q-cai"
+      "mercury": "[INSERT CANISTER PRINCIPAL ID]",
+      "ic": "[INSERT CANISTER PRINCIPAL ID]"
   }
 }

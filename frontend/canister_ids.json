@@ -1,9 +1,9 @@
 {
   "__Candid_UI": {
-      "mercury": "xggrc-cyaaa-aaaaj-aaasq-cai"
+      "mercury": "[INSERT CANISTER PRINCIPAL ID]"
   },
   "www": {
-      "mercury": "xggrc-cyaaa-aaaaj-aaasq-cai",
-      "ic": "xggrc-cyaaa-aaaaj-aaasq-cai"
+      "mercury": "[INSERT CANISTER PRINCIPAL ID]",
+      "ic": "[INSERT CANISTER PRINCIPAL ID]"
   }
 }

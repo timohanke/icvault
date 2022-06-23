@@ -1,7 +1,9 @@
 # IC Vault
 In order to support Dapps handling sensitive data, we need seamless end-to-end encryption to ensure that the IC does not get to see any confidential or private data.
 
-The `IC Vault` enables the management of key-value pairs linked to a location or application. The `IC Vault` focuses on the transparent access of managed data by all registered devices of a specific user. It is assumed that the devices are added to the user’s Internet Identity. We leverage this fact and thereby demonstrate the power of Internet Identity. By "seamless" we mean that no additional communication between the devices is required, i.e., no scanning of QR codes by one device on another, etc. Each device only communicates directly with the IC. 
+The `IC Vault` enables the management of key-value pairs linked to a location or application. The `IC Vault` focuses on the transparent access of managed data by all registered devices of a specific user. It is assumed that the devices are added to the user’s Internet Identity. We leverage this fact and thereby demonstrate the power of Internet Identity. By "seamless" we mean that no additional communication between the devices is required, i.e., no scanning of QR codes by one device on another, etc. Each device only communicates directly with the IC.
+
+Note that this is a demo project. A more polished encrypted notes sample dapp can be found [here](https://github.com/dfinity/examples/tree/master/motoko/encrypted-notes-dapp). 
 
 ![IC Vault](resources/overview.png)
 
